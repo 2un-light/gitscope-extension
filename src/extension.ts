@@ -1,93 +1,111 @@
 import * as vscode from 'vscode';
-import { welcomeCommand } from './commands/welcomeCommand.js';
-import { configGeminiAPICommand } from './commands/configGeminiAPICommand.js';
-import { generateCommitMessageCommand } from './commands/generateCommitMessageCommand.js';
-import { executeCommitCommand } from './commands/executeCommitCommand.js';
-import { executePullCommand } from './commands/executePullCommand.js';
-import { executePushCommand } from './commands/executePushCommand.js';
-import { executeCloneCommand } from './commands/executeCloneCommand.js';
-import { executeCreateBranchCommand } from './commands/executeCreateBranchCommand.js';
-import { executeStageAllCommand } from './commands/executeStageAllCommand.js';
-import { executeCheckoutBranchCommand } from './commands/executeCheckoutBranchCommand.js';
-import { executeMergeCommand } from './commands/executeMergeCommand.js';
-import { executeDeleteLocalBranchCommand } from './commands/executeDeleteLocalBranchCommand.js';
+import { ICommand } from './interfaces/ICommand';
+import { IGitService } from './interfaces/IGitService';
+import { IGeminiService } from './interfaces/IGeminiService';
+import { IGeminiClient } from './interfaces/IGeminiClientService';
+import { IUserInteraction } from './interfaces/IUserInteraction';
+
+import { GeminiService } from './service/geminiService';
+import { GeminiClient } from './service/geminiClientService';
+import { UserInteraction } from './ui/userInteraction';
+import { GitService } from './service/gitService';
+
+import { ExecuteCheckoutBranchCommand } from './commands/CheckoutBranchCommand';
+import { ExecuteCloneCommand } from './commands/CloneCommand';
+import { ExecuteCommitCommand } from './commands/CommitCommand';
+import { WelcomeCommand } from './commands/WelcomeCommand';
+import { ConfigGeminiAPICommand } from './commands/GeminiAPICommand';
+import { ExecuteRecommandAndCreateBranchCommand } from './commands/RecommandAndCreateBranchCommand';
+import { ExecuteStageAllCommand } from './commands/StageAllCommand';
+import { GenerateCommitMessageCommand } from './commands/GenerateCommitMessageCommand';
+import { ExecutePullCommand } from './commands/PullCommand';
+import { ExecutePushCommand } from './commands/PushCommand';
+import { ExecuteMergeCommand } from './commands/MergeCommand';
+import { ExecuteDeleteLocalBranchCommand } from './commands/DeleteLocalBranchCommand';
+
+
+
 
 export function activate(context: vscode.ExtensionContext) {
-	//1. gitScope 시작 커맨드 등록
-	let welcome = vscode.commands.registerCommand(
-		'gitScope.startGitScope',
-		() => welcomeCommand()
-	);
 
-	//2. API 키 설정 커맨드 등록
-	let configAPIKey = vscode.commands.registerCommand(
-		'gitScope.configGeminiAPIKey',
-		() => configGeminiAPICommand(context)
-	);
+    // --- 1. 의존성 객체 생성 ---
 
-	//3. git Clone 커맨드
-	let executeClone = vscode.commands.registerCommand(
-		'gitScope.executeCloneCommand',
-		() => executeCloneCommand()
-	);
+    // 1-1. GitService 주입
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    const rootPath = workspaceFolders?.[0].uri.fsPath ?? process.cwd();
+    const gitService: IGitService = new GitService(rootPath);
 
-	//4. Branch 생성 커맨드
-	let executeCreateBranch = vscode.commands.registerCommand(
-		'gitScope.executeCreateBranchCommand',
-		() => executeCreateBranchCommand(context)
-	);
+    // 1-2. Gemini Service 주입
+    const clientFactory = (apiKey: string): IGeminiClient => {
+        return new GeminiClient(apiKey);
+    };
+    const geminiService: IGeminiService = new GeminiService(context, clientFactory);
 
-	//5. 브랜치 checkout 커맨드
-	let executeCheckout = vscode.commands.registerCommand(
-		'gitScope.executeCheckoutBranchCommand',
-		() => executeCheckoutBranchCommand()
-	);
+    // 1-3. User Interaction 주입
+    const userInteraction: IUserInteraction = new UserInteraction("GitScope Output Channel");
 
-	//6. 모든 변경사항 스테이징 커맨드
-	let executeStageAll = vscode.commands.registerCommand(
-		'gitScope.executeStageAllCommand',
-		() => executeStageAllCommand()
-	);
 
-	//7. commit Message 생성 커맨드 등록
-	let generateCommitMessage = vscode.commands.registerCommand(
-		'gitScope.generateMessage',
-		() => generateCommitMessageCommand(context)
-	);
+    // --- 2. 커맨드 인스턴스 생성 및 의존성 주입 (DI) ---
+    
+    // (Command, ID, 필요한 의존성)을 포함하는 배열
+    const commandsToRegister: { id: string, command: ICommand }[] = [
 
-	//8. Commit 커맨드 등록
-	let executeCommit = vscode.commands.registerCommand(
-		'gitScope.executeCommitCommand',
-		() => executeCommitCommand()
-	);
+        // 1. gitScope 시작 커맨드
+        { id: 'gitScope.startGitScope', 
+          command: new WelcomeCommand(userInteraction) }, 
 
-	//9. Pull 커맨드 등록
-	let executePull = vscode.commands.registerCommand(
-		'gitScope.executePullCommand',
-		() => executePullCommand()
-	);
+        // 2. API 키 설정 커맨드
+        { id: 'gitScope.configGeminiAPIKey', 
+          command: new ConfigGeminiAPICommand(context, userInteraction) },
 
-	//10. Push 커맨드 등록
-	let executePush = vscode.commands.registerCommand(
-		'gitScope.executePushCommand',
-		() => executePushCommand()
-	);
+        // 3. git Clone 커맨드
+        { id: 'gitScope.executeCloneCommand', 
+          command: new ExecuteCloneCommand(gitService, userInteraction) },
 
-	//11. Merge 커맨드
-	let executeMerge = vscode.commands.registerCommand(
-		'gitScope.executeMergeCommand',
-		() => executeMergeCommand()
-	);
+        // 4. Branch 생성 커맨드
+        { id: 'gitScope.executeCreateBranchCommand', 
+          command: new ExecuteRecommandAndCreateBranchCommand(context, gitService, geminiService, userInteraction) },
 
-	//12. local branch 삭제 커맨드
-	let executeDeleteBranch = vscode.commands.registerCommand(
-		'gitScope.executeDeleteLocalBranchCommand',
-		() => executeDeleteLocalBranchCommand()
-	);
+        // 5. 브랜치 checkout 커맨드
+        { id: 'gitScope.executeCheckoutBranchCommand', 
+          command: new ExecuteCheckoutBranchCommand(gitService, userInteraction) },
 
-	context.subscriptions.push(welcome, configAPIKey, executeClone, executeCreateBranch, executeCheckout,
-								executeStageAll, generateCommitMessage, executeCommit, executeCommit, executePull, executePush, executeMerge,
-								executeDeleteBranch);
+        // 6. 모든 변경사항 스테이징 커맨드
+        { id: 'gitScope.executeStageAllCommand', 
+          command: new ExecuteStageAllCommand(gitService, userInteraction) },
+        
+        // 7. commit Message 생성 커맨드 
+        { id: 'gitScope.generateMessage', 
+          command: new GenerateCommitMessageCommand(context, gitService, geminiService, userInteraction) },
+
+        // 8. Commit 커맨드
+        { id: 'gitScope.executeCommitCommand', 
+          command: new ExecuteCommitCommand(gitService, userInteraction) },
+
+        // 9. Pull 커맨드
+        { id: 'gitScope.executePullCommand', 
+          command: new ExecutePullCommand(gitService, userInteraction) },
+
+        // 10. Push 커맨드
+        { id: 'gitScope.executePushCommand', 
+          command: new ExecutePushCommand(gitService, userInteraction) },
+
+        // 11. Merge 커맨드
+        { id: 'gitScope.executeMergeCommand', 
+          command: new ExecuteMergeCommand(gitService, userInteraction) },
+
+        // 12. local branch 삭제 커맨드
+        { id: 'gitScope.executeDeleteLocalBranchCommand', 
+          command: new ExecuteDeleteLocalBranchCommand(gitService, userInteraction) },
+    ];
+    
+    // --- 3. VS Code 등록 ---
+    commandsToRegister.forEach(({ id, command }) => {
+        // 모든 커맨드는 인스턴스의 execute() 메서드를 호출
+        context.subscriptions.push(
+            vscode.commands.registerCommand(id, () => command.execute())
+        );
+    });
 }
 
 export function deactivate() {}

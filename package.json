@@ -2,9 +2,13 @@
   "name": "gitscope",
   "displayName": "GitScope",
   "description": "AI-Powered Git Workflow Optimization Tool",
-  "version": "0.0.4",
+  "version": "0.0.7",
   "publisher": "tomacato",
   "icon": "GitScopeIcon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/2un-light/gitscope-extension.git"
+  },
   "engines": {
     "vscode": "^1.105.0"
   },
@@ -12,9 +16,20 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:gitScope.startGitScope"
+    "onCommand:gitScope.startGitScope",
+    "onCommand:gitScope.configGeminiAPIKey",
+    "onCommand:gitScope.executeCloneCommand",
+    "onCommand:gitScope.executePullCommand",
+    "onCommand:gitScope.executeCreateBranchCommand",
+    "onCommand:gitScope.executeCheckoutBranchCommand",
+    "onCommand:gitScope.executeStageAllCommand",
+    "onCommand:gitScope.generateMessage",
+    "onCommand:gitScope.executeCommitCommand",
+    "onCommand:gitScope.executeMergeCommand",
+    "onCommand:gitScope.executePushCommand",
+    "onCommand:gitScope.executeDeleteLocalBranchCommand"
   ],
-  "main": "./out/extension.js",
+  "main": "./out/src/extension.js",
   "contributes": {
     "commands": [
       {

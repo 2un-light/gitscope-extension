@@ -1,5 +1,3 @@
-import { features } from "process"
-
 export const PROMPTS = {
     commitMessage: (diff: string) => `
         너는 Git 전문가야.

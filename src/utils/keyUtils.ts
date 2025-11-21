@@ -1,13 +1,13 @@
 import * as vscode from 'vscode';
+import { GEMINI_KEY_NAME } from '../constants/geminiConstants';
 
-const KEY_NAME = 'geminiApiKey';
 /** 
  * 1. Secret Storage에 Gemini API 키를 저장 (기존 키 덮어쓰기 포함)
  * @param key 사용자로부터 입력받은 새로운 API 키
  * @returns void
 */
 export async function storeAPIKey(context: vscode.ExtensionContext, key: string) {
-    return await context.secrets.store(KEY_NAME, key);
+    return await context.secrets.store(GEMINI_KEY_NAME, key);
 }
 
 
@@ -16,5 +16,5 @@ export async function storeAPIKey(context: vscode.ExtensionContext, key: string)
  * @returns 저장된 API 키 문자열 또는 키가 없을 경우 undefined
  */
 export async function getAPIKeyFromStore(context: vscode.ExtensionContext): Promise<string | undefined> {
-    return await context.secrets.get(KEY_NAME);
+    return await context.secrets.get(GEMINI_KEY_NAME);
 }

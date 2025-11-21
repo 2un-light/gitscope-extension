@@ -19,7 +19,6 @@ export async function getLastStagedFiles(context: vscode.ExtensionContext): Prom
     return context.workspaceState.get<string[]>(LAST_STAGED_FILES_KEY, []);
 }
 
-
 /**
  * 파일 목록 초기화
  * @param context ExtensionContext
