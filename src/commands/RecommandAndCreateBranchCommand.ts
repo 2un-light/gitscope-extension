@@ -5,6 +5,8 @@ import { IGitService } from '../interfaces/IGitService';
 import { IGeminiService } from '../interfaces/IGeminiService';
 import { ICommand } from '../interfaces/ICommand';
 import { IUserInteraction } from '../interfaces/IUserInteraction';
+import { ModifiedFileQuickPickItem } from '../interfaces/IModifiedFileQuickPickItem';
+import { GitFileStatus } from '../types/gitTypes';
 
 const MODE_MANUAL = 'manualMode';
 const MODE_GEMINI = 'geminiMode';
@@ -74,25 +76,35 @@ export class ExecuteRecommandAndCreateBranchCommand implements ICommand {
 
     //브랜치명을 추천받을 파일 선택
     private async selectFilesForBranchName(): Promise<string[] | undefined> {
-        this.ui.output("🔥 selectFilesForBranchName 진입!");
         this.ui.output('🔄 수정된 파일 목록 확인 중...');
-        const modifiedFiles = await this.git.getModifiedFiles();
+
+        const modifiedFiles: GitFileStatus[] = await this.git.getModifiedFiles();
 
         if (modifiedFiles.length === 0) {
             this.ui.showErrorMessage(ERROR_MESSAGES.noModifiedCode, {});
             return;
         }
 
+        const modifiedFilesItems: ModifiedFileQuickPickItem[] = modifiedFiles.map(files => ({
+            label: files.isDeleted ? `${files.path}`: files.path,
+            description: files.isDeleted ? '⚠️ 수정 혹은 삭제됨 • 현재 디렉토리에 없음': '',
+            isDeleted: files.isDeleted,
+            path: files.path,
+        }));
+
         const selected = await this.ui.selectFilesQuickPick(
-            modifiedFiles,
+            modifiedFilesItems,
             "브랜치명을 추천받을 파일을 선택하세요 (복수 선택 가능)"
         );
 
-        if (!selected) {
+        if (selected === undefined) {
             this.ui.output('❌ 파일 선택이 취소되었습니다.');
             return undefined;
         }
-        return selected;
+
+        const selectedFiles = selected.map(f => f.path);
+
+        return selectedFiles;
     }
 
     //Gemini 로부터 브랜치명 추천받기
@@ -103,8 +115,9 @@ export class ExecuteRecommandAndCreateBranchCommand implements ICommand {
         await this.git.stageSelectedFiles(selectedFiles);
         this.ui.output('✅ 스테이징 완료.');
 
-        await saveLastStagedFiles(this.context, selectedFiles);
         this.ui.output('💾 현재 작업 범위 저장');
+        await saveLastStagedFiles(this.context, selectedFiles);
+        this.ui.output('✅ 저장 완료.');
 
 
         this.ui.output('🔄 Git diff 수집 중...');
@@ -120,29 +133,6 @@ export class ExecuteRecommandAndCreateBranchCommand implements ICommand {
         const recommandedNames = await this.gemini.generateBranchNames(diff, 3);
 
         return recommandedNames;
-    }
-
-    //추천 이름 목록 제시, 선택받기
-    private async selectRecommandBranchName(recommandedNames: string[]): Promise<string | undefined> {
-        const quickPickItems: vscode.QuickPickItem[] = recommandedNames.map(name => ({
-            label: `🤖 추천: ${name}`,
-            description: name
-        }));
-
-        const recommandedSelection = await this.ui.showQuickPick(
-            quickPickItems,
-            {
-                placeHolder: '추천 브랜치 이름 중 하나를 선택해주세요!'
-            }
-        );
-
-        if(!recommandedSelection) {
-            this.ui.output('❌ 추천 브랜치 선택이 취소되었습니다.');
-            return undefined;
-        }
-
-        return recommandedSelection.description;
-
     }
 
     //Gemini 추천 모드 핸들링
@@ -170,6 +160,29 @@ export class ExecuteRecommandAndCreateBranchCommand implements ICommand {
             this.ui.showErrorMessage(ERROR_MESSAGES.recommendationFailed, {});
             return undefined;
         }
+
+    }
+
+    //추천 이름 목록 제시, 선택받기
+    private async selectRecommandBranchName(recommandedNames: string[]): Promise<string | undefined> {
+        const quickPickItems: vscode.QuickPickItem[] = recommandedNames.map(name => ({
+            label: `🤖 추천: ${name}`,
+            description: name
+        }));
+
+        const recommandedSelection = await this.ui.showQuickPick(
+            quickPickItems,
+            {
+                placeHolder: '추천 브랜치 이름 중 하나를 선택해주세요!'
+            }
+        );
+
+        if(!recommandedSelection) {
+            this.ui.output('❌ 추천 브랜치 선택이 취소되었습니다.');
+            return undefined;
+        }
+
+        return recommandedSelection.description;
 
     }
 
@@ -214,7 +227,7 @@ export class ExecuteRecommandAndCreateBranchCommand implements ICommand {
             //모드 선택
             const mode = await this.promptBranchCreationMethod();
             if (!mode) {
-                this.ui.output('❌ 브랜치 생성 방식 선택이 취소되었습니다. 명령 종료.');
+                this.ui.output('❌ 브랜치 생성 방식 선택이 취소되었습니다.');
                 return;
             }
 

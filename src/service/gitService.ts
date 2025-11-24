@@ -1,8 +1,8 @@
 import { PullResult, simpleGit, SimpleGit } from "simple-git";
 import { IGitService } from "../interfaces/IGitService";
 import { GitError } from "../errors/Errors";
-import path from "path";
-import * as fs from "fs";
+import { GitFileStatus } from "../types/gitTypes";
+
 
 export class GitService implements IGitService {
     private git: SimpleGit;
@@ -94,32 +94,41 @@ export class GitService implements IGitService {
         }
     }
 
-    /**
-     * 수정한 파일 목록 가져오기
-     * @returns string[]
+   /**
+     * Staging되지 않은 파일 목록 가져오기
+     * @returns GitFileStatus[]
      */
-    async getModifiedFiles(): Promise<string[]> {
+    async getUnstagedFiles(): Promise<GitFileStatus[]> {
         try {
             const status = await this.git.status();
-            const modifiedFiles: string[] = [];
-        
-            const relevantStatus = ['M', 'A', 'AM', 'MM', '??'];
 
-            for(const file of status.files) {
-                const isModifiedOrAdded = file.working_dir === 'M' || file.working_dir === 'A';
-                const isStagedModifiedOrAdded = file.index === 'M' || file.index === 'A';
-                const isDeleted = file.index === 'D' || file.working_dir === 'D';
-                const isRenamed = file.index === 'R' || file.working_dir === 'R'; 
+            return status.files
+                .filter(file => file.working_dir !== ' ')
+                .map(file => ({
+                    path: file.path,
+                    isDeleted: file.working_dir === 'D',
+                }));
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : '알 수 없는 Git 오류';
+            throw new GitError(errorMessage);
+        }
+    }
 
-                if (!isDeleted && !isRenamed) {
-                    if (isModifiedOrAdded || isStagedModifiedOrAdded || (file.index === '?' && file.working_dir === '?')) {
-                        modifiedFiles.push(file.path);
-                    }
-                }
-            }
-        
-        return modifiedFiles;
-  
+    
+    /**
+     * 스테이징된 파일 가져오기
+     * @returns GitFileStatus[]
+     */
+    async getStagedFiles(): Promise<GitFileStatus[]> {
+        try {
+            const status = await this.git.status();
+
+            return status.files
+                .filter(file => file.index !== ' ')
+                .map(file => ({
+                    path: file.path,
+                    isDeleted: file.index === 'D',
+                }));
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : '알 수 없는 Git 오류';
             throw new GitError(errorMessage);
@@ -128,49 +137,41 @@ export class GitService implements IGitService {
 
 
     /**
-     * 스테이징된 파일 가져오기
-     * @returns string[]
+     * 수정한 파일 목록 가져오기
+     * @returns GitFileStatus[]
      */
-    async getStagedFiles(): Promise<string[]> {
+    async getModifiedFiles(): Promise<GitFileStatus[]> {
         try {
-        const result = await this.git.diff(['--cached', '--name-only', '--diff-filter=ACMR']);
+            const unstaged = await this.getUnstagedFiles();
+            const staged = await this.getStagedFiles();
 
-        const files = result
-            .split('\n')
-            .map(f => f.trim())
-            .filter(f => f.length > 0)
-            .filter(filePath => {
-                const fullPath = path.join(this.rootPath, filePath);
-                return fs.existsSync(fullPath);
-            });
+            const allModifiedMap = new Map<string, GitFileStatus>();
 
-        return files;
+            //staged 파일을 먼저 추가한 후, unstaged파일로 덮어쓰기(가장 최신 상태 반영)
+            staged.forEach(file => allModifiedMap.set(file.path, file));
+            unstaged.forEach(file => allModifiedMap.set(file.path, file));
+
+            return Array.from(allModifiedMap.values());
+           
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : '알 수 없는 Git 오류';
             throw new GitError(errorMessage);
         }
     }
+
+
 
 
     /**
      * 선택된 파일 Staging
-     * @param files string[]
+     * @param files GitFileStatus[]
      */
     async stageSelectedFiles(files: string[]): Promise<void> {
         if(files.length === 0) {
             return;
         }
-        const existingFiles = files.filter(filePath => {
-            const fullPath = path.join(this.rootPath, filePath);
-            return fs.existsSync(fullPath);
-        });
-
-        if(existingFiles.length === 0) {
-            return;
-        }
-
         try {
-            await this.git.add(existingFiles);
+            await this.git.add(files);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : '알 수 없는 Git 오류';
             throw new GitError(errorMessage);
@@ -186,7 +187,7 @@ export class GitService implements IGitService {
         if(files.length === 0) {
             return;
         }
-
+        
         try {
             await this.git.reset(['HEAD', '--', ...files])
         } catch (error) {
@@ -252,29 +253,6 @@ export class GitService implements IGitService {
         }
     }
 
-    /**
-     * Deleted, Renamed 상태의 파일 스테이징
-     */
-    async eunsureDRStaged(): Promise<void> {
-        try {
-            const status = await this.git.status();
-
-            const drFilesToStage: string[] = status.files
-                .filter(file =>
-                    (file.working_dir === 'D' && file.index !== 'D') ||
-                    (file.working_dir === 'R' && file.index !== 'R')
-                )
-                .map(file => file.path);
-
-            if(drFilesToStage.length > 0) {
-                await this.git.raw(['add', '--force', ...drFilesToStage]);
-            }
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : '알 수 없는 Git 오류';
-            throw new GitError(errorMessage);
-        }
-    }
-
 
     /**
      * Git Commit
@@ -283,7 +261,6 @@ export class GitService implements IGitService {
     async commitChanges(message: string): Promise<void> {
         try {
             //커밋 전, Deleted, Renamed 상태의 파일 스테이징
-            await this.eunsureDRStaged();
             await this.git.commit(message);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : '알 수 없는 Git 오류';

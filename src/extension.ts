@@ -13,15 +13,15 @@ import { GitService } from './service/gitService';
 import { ExecuteCheckoutBranchCommand } from './commands/CheckoutBranchCommand';
 import { ExecuteCloneCommand } from './commands/CloneCommand';
 import { ExecuteCommitCommand } from './commands/CommitCommand';
-import { WelcomeCommand } from './commands/WelcomeCommand';
 import { ConfigGeminiAPICommand } from './commands/GeminiAPICommand';
 import { ExecuteRecommandAndCreateBranchCommand } from './commands/RecommandAndCreateBranchCommand';
 import { ExecuteStageAllCommand } from './commands/StageAllCommand';
-import { GenerateCommitMessageCommand } from './commands/GenerateCommitMessageCommand';
 import { ExecutePullCommand } from './commands/PullCommand';
 import { ExecutePushCommand } from './commands/PushCommand';
 import { ExecuteMergeCommand } from './commands/MergeCommand';
 import { ExecuteDeleteLocalBranchCommand } from './commands/DeleteLocalBranchCommand';
+import { WelcomeCommand } from './commands/welcomeCommand';
+import { GenerateCommitMessageCommand } from './commands/generateCommitMessageCommand';
 
 
 

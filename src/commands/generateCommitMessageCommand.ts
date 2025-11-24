@@ -5,6 +5,8 @@ import { IGitService } from '../interfaces/IGitService';
 import { IGeminiService } from '../interfaces/IGeminiService';
 import { ICommand } from '../interfaces/ICommand';
 import { IUserInteraction } from '../interfaces/IUserInteraction';
+import { ModifiedFileQuickPickItem } from '../interfaces/IModifiedFileQuickPickItem';
+import { GitFileStatus } from '../types/gitTypes';
 
 export class GenerateCommitMessageCommand implements ICommand {
     private context: vscode.ExtensionContext;
@@ -20,8 +22,8 @@ export class GenerateCommitMessageCommand implements ICommand {
     }
 
     //QuickPick 생성 - 스테이징된 파일 재사용 여부 묻기
-    private prepareReuseConfirmationItems(stagedFiles: string[]): {items: vscode.QuickPickItem[], savedMessageLabel: string} {
-        const savedMessageLabel = `✅ 이전에 스테이징 한 ${stagedFiles.length}개 파일로 진행   (${stagedFiles.join(", ")})`;
+    private prepareReuseConfirmationItems(lastStagedFiles: string[]): {items: vscode.QuickPickItem[], savedMessageLabel: string} {
+        const savedMessageLabel = `✅ 이전에 스테이징 한 ${lastStagedFiles.length}개 파일로 진행   (${lastStagedFiles.join(", ")})`;
         const freshSelect = '🔄 새로 파일 선택';
         const cancel = '❌ 취소';
 
@@ -36,12 +38,13 @@ export class GenerateCommitMessageCommand implements ICommand {
 
     //파일 선택 방식 입력(재사용 or 새로 선택)
     //최종 파일 목록 반환, 취소시 undefined 반환
-    private async promptForFileSelection(stagedFiles: string[]): Promise<string[] | undefined> {
-        let selectedFiles: string[] = []; 
+    private async promptForFileSelection(lastStagedFiles: GitFileStatus[]): Promise<boolean> {
+
+        const selectedFilesPaths = lastStagedFiles.map(f => f.path);
         
-        if(stagedFiles && stagedFiles.length > 0) {
-            this.ui.output(`ℹ️ 스테이징된 (${stagedFiles.length}개 파일)가 있습니다.`);
-            const { items, savedMessageLabel } = this.prepareReuseConfirmationItems(stagedFiles);
+        if(selectedFilesPaths && selectedFilesPaths.length > 0) {
+            this.ui.output(`ℹ️ 스테이징된 (${selectedFilesPaths.length}개 파일)가 있습니다.`);
+            const { items, savedMessageLabel } = this.prepareReuseConfirmationItems(selectedFilesPaths);
 
             const confirmation = await this.ui.showQuickPick(items, {
                     title: '이전에 스테이징 한 파일로 진행하시겠습니까?',
@@ -51,54 +54,53 @@ export class GenerateCommitMessageCommand implements ICommand {
             );
 
             if(confirmation?.label === savedMessageLabel) {
-                selectedFiles = stagedFiles;
-                return selectedFiles;
+                //스테이징된 파일 저장하기
+                await saveLastStagedFiles(this.context, selectedFilesPaths);
+                this.ui.output(`✅ 기존 **${selectedFilesPaths.length}개 파일**로 진행합니다.`);
+                return true;
             }else if(confirmation?.label === '❌ 취소' || confirmation === undefined) {
                 this.ui.output('❌ 작업이 취소되었습니다.');
-                return undefined;
+                return false;
             }
             
         }
 
+        //파일 선택하기
         this.ui.output('🔄 수정된 파일 목록 확인 중...');
+        await this.git.unstageSelectedFiles(selectedFilesPaths);
         const modifiedFiles = await this.git.getModifiedFiles();
 
         if (modifiedFiles.length === 0) {
             this.ui.showErrorMessage(ERROR_MESSAGES.noModifiedCode, {});
-            return;
         }
+
+        const modifiedFilesItems: ModifiedFileQuickPickItem[] = modifiedFiles.map(files => ({
+            label: files.isDeleted ? `${files.path}`: files.path,
+            description: files.isDeleted ? '⚠️ 수정 혹은 삭제됨 • 현재 디렉토리에 없음': '',
+            isDeleted: files.isDeleted,
+            path: files.path,
+        }));
 
         const selected = await this.ui.selectFilesQuickPick(
-            modifiedFiles,
+            modifiedFilesItems,
             "커밋 메시지를 추천받을 파일을 선택하세요 (복수 선택 가능)"
-        )
+        );
 
-        if (!selected) {
+        if (selected === undefined) {
             this.ui.output('❌ 파일 선택이 취소되었습니다.');
-            return undefined;
+            return false;
         }
 
-        selectedFiles = selected;
-        await saveLastStagedFiles(this.context, selectedFiles);
-        return selectedFiles;
-            
-    }
+        const selectedNewFilesPaths = selected.map(f => f.path);
 
-    //선택된 파일 스테이징, 해당 파일에 대한 Git Diff 수집
-    private async getDiffForGeneration(selectedFiles: string[]): Promise<string> {
         this.ui.output('🔄 선택된 파일을 **스테이징** 중...');
-        await this.git.stageSelectedFiles(selectedFiles);
+        await this.git.stageSelectedFiles(selectedNewFilesPaths);
         this.ui.output('✅ 스테이징 완료.');
 
-        //4. 선택된 파일의 diff 수집
-        this.ui.output('🔄 Git diff 수집 중...');
-        const diff = await this.git.getGitDiff();
-
-        if(!diff.trim()) {
-            this.ui.showErrorMessage(ERROR_MESSAGES.emptyDiff, {});
-        }
-
-        return diff;
+        await saveLastStagedFiles(this.context, selectedNewFilesPaths);
+        this.ui.output(`✅ **${selectedNewFilesPaths.length}개 파일** 선택 및 스테이징 완료.`);
+        return true;
+            
     }
 
 
@@ -106,23 +108,19 @@ export class GenerateCommitMessageCommand implements ICommand {
         this.ui.clearOutput();
         this.ui.output('🪶 커밋 메시지 추천 시작');
 
-
-        let diff: string;
-
         try {
 
             //1. 스테이징된 파일 목록 불러오기
             const stagedFiles = await this.git.getStagedFiles();
             
             // 2. 파일 선택 및 범위 결정
-            const selectedFiles = await this.promptForFileSelection(stagedFiles);
-            if(!selectedFiles) {
+            const selection = await this.promptForFileSelection(stagedFiles);
+            if(!selection) {
                 return;
             }
-            this.ui.output(`✅ **${selectedFiles.length}개 파일** 선택 완료.`);
 
-            //3. 선택된 파일 staging, diff 수집
-            const diff = await this.getDiffForGeneration(selectedFiles);
+            //3. 스테이징된 파일 diff 수집
+            const diff = await this.git.getGitDiff();
 
             //4. Gemini에게 commit message 추천 요청
             this.ui.output('🤖 Gemini에게 commit message 추천 받는 중...');
@@ -134,7 +132,7 @@ export class GenerateCommitMessageCommand implements ICommand {
             this.ui.output(`"${message}"`);
 
             this.ui.output('----------------------------');
-            await vscode.env.clipboard.writeText(message);
+            await this.ui.writeClipboard(message);
             this.ui.output('📋 클립보드에 복사 완료!');
             this.ui.output('🚀 커밋을 실행하려면 명령 팔레트에서 "GitScope: 🚀 [COMMIT] 변경 사항 Commit"를 실행하세요.');
 

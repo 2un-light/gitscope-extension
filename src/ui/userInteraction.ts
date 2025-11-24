@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { IUserInteraction } from '../interfaces/IUserInteraction';
+import { ModifiedFileQuickPickItem } from '../interfaces/IModifiedFileQuickPickItem';
 
 export class UserInteraction implements IUserInteraction {
     private outputChannel: vscode.OutputChannel;
@@ -21,22 +22,19 @@ export class UserInteraction implements IUserInteraction {
         return vscode.window.showInputBox(options);
     }
 
-    async selectFilesQuickPick(files: string[],title: string): Promise<string[] | undefined> {
+    async selectFilesQuickPick(items: ModifiedFileQuickPickItem[] ,title: string): Promise<ModifiedFileQuickPickItem[] | undefined> {
 
-        const items = files.map(f => ({
-            label: f,
-            picked: false,
-        }));
-
-        const selected = await vscode.window.showQuickPick(items, {
+       const selected = await vscode.window.showQuickPick(items, {
             title,
             canPickMany: true,
             ignoreFocusOut: true,
-        });
+       });
 
-        if(!selected || selected.length === 0) return undefined;
+       if(!selected || selected.length === 0) {
+        return undefined;
+       }
 
-        return selected.map(item => item.label);
+       return selected;
     }
 
     async showInformationMessage(message: string, options: vscode.MessageOptions, ...items: string[]): Promise<string | undefined> {
