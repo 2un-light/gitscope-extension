@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitScope Flow Navigator</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="${styleUri}">
+</head>
+<body onload="init()">
+
+    <h1 class="main-title">
+        🚀 GitScope Navigator
+    </h1>
+    <p class="main-description">
+        선택한 전략에 따라 워크플로우를 구성하고 명령어를 순서대로 실행하세요!
+    </p>
+
+    <div id="flow-tabs" class="tab-button-container">
+        <button data-flow="common" class="tab-button">
+            필수 설정 (Common)
+        </button>
+        <button data-flow="single" class="tab-button">
+            Single Branch
+        </button>
+        <button data-flow="github" class="tab-button">
+            GitHub Flow
+        </button>
+        <button data-flow="gitlab" class="tab-button">
+            GitLab Flow
+        </button>
+        <button data-flow="gitflow" class="tab-button">
+            Git Flow
+        </button>
+    </div>
+
+    <div id="flow-content" class="space-y-6">
+    </div>
+
+    <div id="message-area" class="message-area hidden">
+    </div>
+
+    <script src="${scriptUri}" type="module"></script>
+</body>
+</html>

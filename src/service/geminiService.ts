@@ -31,7 +31,7 @@ export class GeminiService implements IGeminiService {
      * @param apiKey Gemini API Key
      * @param return string
      */
-    async generateCommitMessage(diff: string): Promise<string> {
+    async generateCommitMessage(diff: string, currentBranch: string): Promise<string> {
         if(!diff?.trim()) {
             throw new InvalidArgumentError(ERROR_MESSAGES.invalidDiff);
         }
@@ -39,7 +39,7 @@ export class GeminiService implements IGeminiService {
         const apiKey = await this.getApiKey();
         const client = this.clientFactory(apiKey);
 
-        const prompt = PROMPTS.commitMessage(diff);
+        const prompt = PROMPTS.commitMessage(diff, currentBranch);
         return client.requestGeminiAPI(prompt);
     }
 

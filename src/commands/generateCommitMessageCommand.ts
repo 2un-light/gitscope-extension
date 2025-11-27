@@ -121,10 +121,11 @@ export class GenerateCommitMessageCommand implements ICommand {
 
             //3. 스테이징된 파일 diff 수집
             const diff = await this.git.getGitDiff();
+            const currentBranch = await this.git.getCurrentBranchName();
 
             //4. Gemini에게 commit message 추천 요청
             this.ui.output('🤖 Gemini에게 commit message 추천 받는 중...');
-            const message = await this.gemini.generateCommitMessage(diff);
+            const message = await this.gemini.generateCommitMessage(diff, currentBranch);
 
             //5. 추천 메시지 출력 및 클립보드 복사
             this.ui.output('----------------------------');

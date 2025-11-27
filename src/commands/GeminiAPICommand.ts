@@ -20,7 +20,7 @@ export class ConfigGeminiAPICommand implements ICommand {
 
             if(apiKey) {
                 this.ui.output('✅ 저장된 API 키를 사용합니다.');
-                this.ui.output('만약 새로 설정하고 싶다면, 명령 팔레트에서 해당 명령을 다시 실행해 주세요.');
+                this.ui.output('만약 새로 설정하고 싶다면, 해당 명령을 다시 실행해 주세요.');
             }
 
             const key = await this.ui.showInputBox({

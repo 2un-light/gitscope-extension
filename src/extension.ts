@@ -20,11 +20,11 @@ import { ExecutePullCommand } from './commands/PullCommand';
 import { ExecutePushCommand } from './commands/PushCommand';
 import { ExecuteMergeCommand } from './commands/MergeCommand';
 import { ExecuteDeleteLocalBranchCommand } from './commands/DeleteLocalBranchCommand';
-import { WelcomeCommand } from './commands/welcomeCommand';
+
 import { GenerateCommitMessageCommand } from './commands/generateCommitMessageCommand';
-
-
-
+import { WelcomeCommand } from './commands/WelcomeCommand';
+import { ShowFlowNavigator } from './commands/ShowFlowNavigator';
+import { ExecuteCreateTagAndPush } from './commands/CreateTagAndPush';
 
 export function activate(context: vscode.ExtensionContext) {
 
@@ -50,62 +50,70 @@ export function activate(context: vscode.ExtensionContext) {
     // (Command, ID, 필요한 의존성)을 포함하는 배열
     const commandsToRegister: { id: string, command: ICommand }[] = [
 
-        // 1. gitScope 시작 커맨드
-        { id: 'gitScope.startGitScope', 
-          command: new WelcomeCommand(userInteraction) }, 
+      //0. webView 커맨드
+      { id: 'gitScope.showGitScopeNavigator',
+        command: new ShowFlowNavigator(context, userInteraction)},
 
-        // 2. API 키 설정 커맨드
-        { id: 'gitScope.configGeminiAPIKey', 
-          command: new ConfigGeminiAPICommand(context, userInteraction) },
+      // 1. gitScope 시작 커맨드
+      { id: 'gitScope.startGitScope', 
+        command: new WelcomeCommand(userInteraction) }, 
 
-        // 3. git Clone 커맨드
-        { id: 'gitScope.executeCloneCommand', 
-          command: new ExecuteCloneCommand(gitService, userInteraction) },
+      // 2. API 키 설정 커맨드
+      { id: 'gitScope.configGeminiAPIKey', 
+        command: new ConfigGeminiAPICommand(context, userInteraction) },
 
-        // 4. Branch 생성 커맨드
-        { id: 'gitScope.executeCreateBranchCommand', 
-          command: new ExecuteRecommandAndCreateBranchCommand(context, gitService, geminiService, userInteraction) },
+      // 3. git Clone 커맨드
+      { id: 'gitScope.executeCloneCommand', 
+        command: new ExecuteCloneCommand(gitService, userInteraction) },
 
-        // 5. 브랜치 checkout 커맨드
-        { id: 'gitScope.executeCheckoutBranchCommand', 
-          command: new ExecuteCheckoutBranchCommand(gitService, userInteraction) },
+      // 4. Branch 생성 커맨드
+      { id: 'gitScope.executeCreateBranchCommand', 
+        command: new ExecuteRecommandAndCreateBranchCommand(context, gitService, geminiService, userInteraction) },
 
-        // 6. 모든 변경사항 스테이징 커맨드
-        { id: 'gitScope.executeStageAllCommand', 
-          command: new ExecuteStageAllCommand(gitService, userInteraction) },
-        
-        // 7. commit Message 생성 커맨드 
-        { id: 'gitScope.generateMessage', 
-          command: new GenerateCommitMessageCommand(context, gitService, geminiService, userInteraction) },
+      // 5. 브랜치 checkout 커맨드
+      { id: 'gitScope.executeCheckoutBranchCommand', 
+        command: new ExecuteCheckoutBranchCommand(gitService, userInteraction) },
 
-        // 8. Commit 커맨드
-        { id: 'gitScope.executeCommitCommand', 
-          command: new ExecuteCommitCommand(gitService, userInteraction) },
+      // 6. 모든 변경사항 스테이징 커맨드
+      { id: 'gitScope.executeStageAllCommand', 
+        command: new ExecuteStageAllCommand(gitService, userInteraction) },
+      
+      // 7. commit Message 생성 커맨드 
+      { id: 'gitScope.generateMessage', 
+        command: new GenerateCommitMessageCommand(context, gitService, geminiService, userInteraction) },
 
-        // 9. Pull 커맨드
-        { id: 'gitScope.executePullCommand', 
-          command: new ExecutePullCommand(gitService, userInteraction) },
+      // 8. Commit 커맨드
+      { id: 'gitScope.executeCommitCommand', 
+        command: new ExecuteCommitCommand(gitService, userInteraction) },
 
-        // 10. Push 커맨드
-        { id: 'gitScope.executePushCommand', 
-          command: new ExecutePushCommand(gitService, userInteraction) },
+      // 9. Pull 커맨드
+      { id: 'gitScope.executePullCommand', 
+        command: new ExecutePullCommand(gitService, userInteraction) },
 
-        // 11. Merge 커맨드
-        { id: 'gitScope.executeMergeCommand', 
-          command: new ExecuteMergeCommand(gitService, userInteraction) },
+      // 10. Push 커맨드
+      { id: 'gitScope.executePushCommand', 
+        command: new ExecutePushCommand(gitService, userInteraction) },
 
-        // 12. local branch 삭제 커맨드
-        { id: 'gitScope.executeDeleteLocalBranchCommand', 
-          command: new ExecuteDeleteLocalBranchCommand(gitService, userInteraction) },
-    ];
-    
-    // --- 3. VS Code 등록 ---
-    commandsToRegister.forEach(({ id, command }) => {
-        // 모든 커맨드는 인스턴스의 execute() 메서드를 호출
-        context.subscriptions.push(
-            vscode.commands.registerCommand(id, () => command.execute())
-        );
-    });
+      // 11. Merge 커맨드
+      { id: 'gitScope.executeMergeCommand', 
+        command: new ExecuteMergeCommand(gitService, userInteraction) },
+
+      // 12. local branch 삭제 커맨드
+      { id: 'gitScope.executeDeleteLocalBranchCommand', 
+        command: new ExecuteDeleteLocalBranchCommand(gitService, userInteraction) },
+
+      //13. Tag 생성 및 push 커맨드
+      { id: 'gitScope.createTagAndPushCommand', 
+        command: new ExecuteCreateTagAndPush(gitService, userInteraction) },
+  ];
+  
+  // --- 3. VS Code 등록 ---
+  commandsToRegister.forEach(({ id, command }) => {
+      // 모든 커맨드는 인스턴스의 execute() 메서드를 호출
+      context.subscriptions.push(
+          vscode.commands.registerCommand(id, () => command.execute())
+      );
+  });
 }
 
 export function deactivate() {}

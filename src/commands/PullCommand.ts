@@ -19,7 +19,10 @@ export class ExecutePullCommand implements ICommand {
         this.ui.output('🔄 Git Pull 실행 (origin/현재 브랜치)...');
 
         try {
-            const pullResult = await this.git.pullChanges('origin', '');
+            const currentBranch = await this.git.getCurrentBranchName();
+            this.ui.output(`🔎 현재 브랜치: ${currentBranch}`);
+
+            const pullResult = await this.git.pullChanges('origin', currentBranch);
 
             if(pullResult.summary.changes > 0) {
                 this.ui.output(`🎉 Pull 성공! ${pullResult.summary.changes}개의 파일이 업데이트되었습니다.`);

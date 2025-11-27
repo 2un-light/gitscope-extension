@@ -35,4 +35,6 @@ export const ERROR_MESSAGES = {
 
     recommendationFailed: "Gemini 추천 실행 실패",
 
+    tagCommandFailed: "Tag 생성 및 push 실패",
+
 }

@@ -2,7 +2,7 @@
   "name": "gitscope",
   "displayName": "GitScope",
   "description": "AI-Powered Git Workflow Optimization Tool",
-  "version": "0.0.8",
+  "version": "1.0.0",
   "publisher": "tomacato",
   "icon": "GitScopeIcon.png",
   "repository": {
@@ -16,6 +16,7 @@
     "Other"
   ],
   "activationEvents": [
+    "onCommand:gitScope.showGitScopeNavigator",
     "onCommand:gitScope.startGitScope",
     "onCommand:gitScope.configGeminiAPIKey",
     "onCommand:gitScope.executeCloneCommand",
@@ -27,14 +28,20 @@
     "onCommand:gitScope.executeCommitCommand",
     "onCommand:gitScope.executeMergeCommand",
     "onCommand:gitScope.executePushCommand",
-    "onCommand:gitScope.executeDeleteLocalBranchCommand"
+    "onCommand:gitScope.executeDeleteLocalBranchCommand",
+    "onCommand:gitScope.createTagAndPushCommand"
   ],
   "main": "./out/src/extension.js",
   "contributes": {
     "commands": [
       {
+        "command": "gitScope.showGitScopeNavigator",
+        "title": "Git Scope: 🧭 GitScope Navigator 열기",
+        "category": "GitScope"
+      },
+      {
         "command": "gitScope.startGitScope",
-        "title": "Git Scope: 🔭 [WELCOME] Git Scope 시작하기 가이드",
+        "title": "Git Scope: 🔭 [WELCOME] Git Scope 사용 안내",
         "category": "GitScope"
       },
       {
@@ -91,7 +98,13 @@
         "command": "gitScope.executeDeleteLocalBranchCommand",
         "title": "GitScope: 🗑️ [BRANCH] Loacl Branch 삭제",
         "category": "GitScope"
+      },
+      {
+        "command": "gitScope.createTagAndPushCommand",
+        "title": "GitScope: 🏷️ [TAG] 태그 생성 및 Push",
+        "category": "GitScope"
       }
+
     ]
   },
   "scripts": {
@@ -104,7 +117,8 @@
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
-    "@types/node": "22.x",
+    "@types/node": "^22.19.1",
+    "@types/sinon": "^21.0.0",
     "@types/vscode": "^1.105.0",
     "@typescript-eslint/eslint-plugin": "^8.45.0",
     "@typescript-eslint/parser": "^8.45.0",

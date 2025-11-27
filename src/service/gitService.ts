@@ -11,11 +11,7 @@ export class GitService implements IGitService {
         this.git = simpleGit(rootPath, {binary: 'git'});
     }
 
-    /**
-     * 원격 저장소 클론 (git clone)
-     * @param url 클론할 원격 저장소의 주소
-     * @param localPath localPath 로컬에서 저장될 폴더 경로
-     */
+
     async cloneRepository(url: string, localPath: string): Promise<void> {
         try {
             await this.git.clone(url, localPath);
@@ -26,10 +22,6 @@ export class GitService implements IGitService {
     }
 
 
-    /**
-     * 브랜치 생성
-     * @param branchName 브랜치 이름
-     */
     async createBranch(branchName: string): Promise<void> {
         try {
             await this.git.branch([branchName]);
@@ -43,10 +35,6 @@ export class GitService implements IGitService {
     }
 
 
-    /**
-     * 브랜치 목록 가져오기
-     * @returns string[]
-     */
     async getLocalBranches(): Promise<string[]> {
         try {
             const branches = await this.git.branchLocal();
@@ -58,10 +46,7 @@ export class GitService implements IGitService {
     }
 
 
-    /**
-     * 현재 체크아웃되어있는 브랜치 이름 가져오기
-     * @returns string
-     */
+
     async  getCurrentBranchName(): Promise<string> {
         try {
             const branchSummary = await this.git.branchLocal();
@@ -73,10 +58,7 @@ export class GitService implements IGitService {
     }
 
 
-    /**
-     * 브랜치 전환
-     * @param branchName 브랜치 이름 
-     */
+
     async  checkout(branchName: string): Promise<void> {
         try {
             await this.git.checkout(branchName);
@@ -94,10 +76,7 @@ export class GitService implements IGitService {
         }
     }
 
-   /**
-     * Staging되지 않은 파일 목록 가져오기
-     * @returns GitFileStatus[]
-     */
+
     async getUnstagedFiles(): Promise<GitFileStatus[]> {
         try {
             const status = await this.git.status();
@@ -115,10 +94,7 @@ export class GitService implements IGitService {
     }
 
     
-    /**
-     * 스테이징된 파일 가져오기
-     * @returns GitFileStatus[]
-     */
+
     async getStagedFiles(): Promise<GitFileStatus[]> {
         try {
             const status = await this.git.status();
@@ -136,10 +112,7 @@ export class GitService implements IGitService {
     }
 
 
-    /**
-     * 수정한 파일 목록 가져오기
-     * @returns GitFileStatus[]
-     */
+
     async getModifiedFiles(): Promise<GitFileStatus[]> {
         try {
             const unstaged = await this.getUnstagedFiles();
@@ -162,10 +135,7 @@ export class GitService implements IGitService {
 
 
 
-    /**
-     * 선택된 파일 Staging
-     * @param files GitFileStatus[]
-     */
+  
     async stageSelectedFiles(files: string[]): Promise<void> {
         if(files.length === 0) {
             return;
@@ -179,10 +149,7 @@ export class GitService implements IGitService {
     }
 
 
-    /**
-     * 선택 파일 unStaging
-     * @param files string[]
-     */
+
     async unstageSelectedFiles(files: string[]): Promise<void> {
         if(files.length === 0) {
             return;
@@ -197,10 +164,7 @@ export class GitService implements IGitService {
     }
 
 
-    /**
-     * Staging된 변경사항 Diff 수집
-     * @returns string
-     */
+
     async getGitDiff() : Promise<string> {
         try {
             const diff = await this.git.diff(['--cached', '--text']);
@@ -212,9 +176,6 @@ export class GitService implements IGitService {
     }
 
 
-    /**
-     * 모든 변경사항 Staging
-     */
     async stageAllChanges(): Promise<void> {
         try {
             await this.git.add('.');
@@ -225,12 +186,7 @@ export class GitService implements IGitService {
     }
 
 
-    /**
-     * 원격 변경사항 pull
-     * @param remote string
-     * @param branch string
-     * @returns PullResult
-     */
+
     async pullChanges(remote: string = 'origin', branch: string = ''): Promise<PullResult> {
         try {
             
@@ -254,10 +210,6 @@ export class GitService implements IGitService {
     }
 
 
-    /**
-     * Git Commit
-     * @param message string
-     */
     async commitChanges(message: string): Promise<void> {
         try {
             //커밋 전, Deleted, Renamed 상태의 파일 스테이징
@@ -269,11 +221,6 @@ export class GitService implements IGitService {
     }
 
 
-    /**
-     * 원격 저장소로 Push
-     * @param remote string
-     * @param branch string
-     */
     async pushChanges(remote: string = 'origin', branch: string = ''): Promise<void> {
         try {
             //현재 브랜치 이름 가져오기
@@ -286,12 +233,7 @@ export class GitService implements IGitService {
         }
     }
 
-
-    /**
-     * merge 수행
-     * @param sourceBranch string
-     * @returns string
-     */
+ 
     async mergeBranches(sourceBranch: string): Promise<string> {
         try {
             const result = await this.git.raw(['merge', sourceBranch]);
@@ -303,10 +245,6 @@ export class GitService implements IGitService {
     }
 
 
-    /**
-     * Branch 삭제
-     * @param branchName string
-     */
     async deleteLocalBranch(branchName: string): Promise<void> {
         try {
             await this.git.branch(['-d', branchName]);
@@ -323,15 +261,37 @@ export class GitService implements IGitService {
     }
 
 
-    /**
-     * 원격에서 삭제된 브랜치 로컬에서 정리
-     */
     async pruneRemoteBranches(): Promise<void> {
         try {
             await this.git.fetch(['--prune']);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : '알 수 없는 Git 오류';
             throw new GitError(errorMessage);
+        }
+    }
+
+    async createTag(tagName: string, message?: string): Promise<void> {
+        try {
+            const args = message ? ['tag', '-a', tagName, '-m', message] : ['tag', tagName];
+            await this.git.raw(args);
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : '알 수 없는 Git 오류';
+            throw new GitError(errorMessage);
+        }
+    }
+
+    async pushTags(tagName?: string): Promise<void> {
+        try {
+            const pushArgs: string[] = ['push', 'origin'];
+            if(tagName) {
+                pushArgs.push('refs/tags/' + tagName);
+            }else {
+                pushArgs.push('--tags');
+            }
+
+            await this.git.raw(pushArgs);
+        } catch (error) {
+            
         }
     }
 }

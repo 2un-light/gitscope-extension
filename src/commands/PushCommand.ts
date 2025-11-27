@@ -18,7 +18,10 @@ export class ExecutePushCommand implements ICommand {
         this.ui.output('🔄 Git Push 실행 (origin/현재 브랜치)...');
 
         try {
-            await this.git.pushChanges('origin', '');
+            const currentBranch = await this.git.getCurrentBranchName(); 
+            this.ui.output(`🔎 현재 브랜치: ${currentBranch}`);
+
+            await this.git.pushChanges('origin', currentBranch);
             this.ui.output('🌟 Push 성공! 로컬 커밋이 원격 저장소에 반영되었습니다.');
         } catch (error) {
 
