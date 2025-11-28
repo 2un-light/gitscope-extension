@@ -1,6 +1,7 @@
 .vscode/**
 .vscode-test/**
 src/**
+!src/webview-ui/**
 .gitignore
 .yarnrc
 vsc-extension-quickstart.md
@@ -9,3 +10,6 @@ vsc-extension-quickstart.md
 **/*.map
 **/*.ts
 **/.vscode-test.*
+!src/webview-ui/**/*.html
+!src/webview-ui/**/*.css
+!src/webview-ui/**/*.js
