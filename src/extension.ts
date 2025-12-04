@@ -23,7 +23,7 @@ import { ExecuteDeleteLocalBranchCommand } from './commands/DeleteLocalBranchCom
 
 import { GenerateCommitMessageCommand } from './commands/generateCommitMessageCommand';
 import { WelcomeCommand } from './commands/WelcomeCommand';
-import { ShowFlowNavigator } from './commands/ShowFlowNavigator';
+import { ShowNavigator } from './commands/ShowNavigator';
 import { ExecuteCreateTagAndPush } from './commands/CreateTagAndPush';
 
 export function activate(context: vscode.ExtensionContext) {
@@ -52,7 +52,7 @@ export function activate(context: vscode.ExtensionContext) {
 
       //0. webView 커맨드
       { id: 'gitScope.showGitScopeNavigator',
-        command: new ShowFlowNavigator(context, userInteraction)},
+        command: new ShowNavigator(context, userInteraction)},
 
       // 1. gitScope 시작 커맨드
       { id: 'gitScope.startGitScope', 

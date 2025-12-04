@@ -171,7 +171,7 @@ export const FLOW_STEPS = {
                 isAccordion: true,
                 accordionTitle: '🚀 Release 릴리즈 준비 및 배포 (테스트)',
                 accordionSteps: [
-                    { label: "[STEP1] \"release/<버전>\" Branch 생성/전환", cmd: "createBranch", icon: "🌳" },
+                    { label: "[STEP1] \"release/버전\" Branch 생성/전환", cmd: "createBranch", icon: "🌳" },
                     { label: "[STEP2] Develop 브랜치 Merge", cmd: "merge", icon: "➡️" },
                     { label: "[STEP3] release 버그 수정 및 검토", cmd: "noop", icon: "🔍" },
                     { label: "[STEP4] 모든 변경 사항 Staging", cmd: "stageAll", icon: "➕" },
@@ -186,16 +186,16 @@ export const FLOW_STEPS = {
                     //백머지 진행
                     { label: "[STEP11] Develop 브랜치로 Checkout", cmd: "checkoutBranch", icon: "🔄" },
                     { label: "[STEP12] Develop 브랜치 최신 상태 Pull", cmd: "pull", icon: "📥" },
-                    { label: "[STEP13] \"release/<버전>\" 브랜치 Merge", cmd: "merge", icon: "➡️" },
+                    { label: "[STEP13] \"release/버전\" 브랜치 Merge", cmd: "merge", icon: "➡️" },
                     { label: "[STEP14] 원격 저장소로 Push (MR 생성 준비)", cmd: "push", icon: "☁️" },
-                    { label: "[STEP15] \"release/<버전>\" Branch 삭제", cmd: "deleteLocalBranch", icon: "🗑️" },
+                    { label: "[STEP15] \"release/버전\" Branch 삭제", cmd: "deleteLocalBranch", icon: "🗑️" },
                 ]
             },
             {
                 isAccordion: true,
                 accordionTitle: '🔥 Hotfix 긴급 배포',
                 accordionSteps: [
-                    { label: "[STEP1] \"hotfix/<버전>\" Branch 생성/전환", cmd: "createBranch", icon: "🌳" },
+                    { label: "[STEP1] \"hotfix/버전\" Branch 생성/전환", cmd: "createBranch", icon: "🌳" },
                     { label: "[STEP2] Main 브랜치 Merge", cmd: "merge", icon: "➡️" }, // Hotfix는 master에서 분기해야 함 (현재 코드에서는 main 통합으로 되어있음, 이는 Git Flow의 일반적인 방법과 다를 수 있으나 사용자 코드에 따름)
                     { label: "[STEP3] 긴급 버그 수정 진행", cmd: "noop", icon: "🔥" },
                     { label: "[STEP4] 모든 변경 사항 Staging", cmd: "stageAll", icon: "➕" },
@@ -210,9 +210,9 @@ export const FLOW_STEPS = {
                     //백머지 진행
                     { label: "[STEP11] Develop 브랜치로 Checkout", cmd: "checkoutBranch", icon: "🔄" },
                     { label: "[STEP12] Develop 브랜치 최신 상태 Pull", cmd: "pull", icon: "📥" },
-                    { label: "[STEP13] \"hotfix/<버전>\" 브랜치 Merge", cmd: "merge", icon: "➡️" },
+                    { label: "[STEP13] \"hotfix/버전\" 브랜치 Merge", cmd: "merge", icon: "➡️" },
                     { label: "[STEP14] 원격 저장소로 Push (MR 생성 준비)", cmd: "push", icon: "☁️" },
-                    { label: "[STEP15] \"hotfix/<버전>\" Branch 삭제", cmd: "deleteLocalBranch", icon: "🗑️" },
+                    { label: "[STEP15] \"hotfix/버전\" Branch 삭제", cmd: "deleteLocalBranch", icon: "🗑️" },
                 ]
             },
         ]

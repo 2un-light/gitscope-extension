@@ -38,6 +38,7 @@ export class GeminiClient implements IGeminiClient {
         } catch (error: any) {
             const status = error.response?.status;
             const detail = error.response?.data?.error.message ?? "상세 오류 없음";
+
             if(axios.isAxiosError(error)) {
 
                 if(typeof status === "number" && [400, 401, 403].includes(status)) {
@@ -45,7 +46,7 @@ export class GeminiClient implements IGeminiClient {
                 }
 
                 if(status === 429) {
-                    throw new QuotaError(status, ERROR_MESSAGES.apiKeyInvalid);
+                    throw new QuotaError(status, ERROR_MESSAGES.quotaExceeded, detail);
                 }
 
                 throw new HttpError(status, detail);
