@@ -14,13 +14,13 @@ GitScope는 변경된 파일을 분석하여 깔끔한 기록을 만드는 데 �
 ### • 🌳 AI Branch Name Recommendation  
 - 작업 내용을 기반으로 **자동 브랜치명 추천**  
 - Git 규칙에 맞는 일관된 네이밍 패턴 유지
-![Feature 1](./images/demo_recommand_commitmessage.gif)
+<img src="./images/demo_recommand_branch.gif" alt="AI 브랜치명 추천 시연" width="1000" />
 
 ### • 🪶 AI Commit Message Generator  
 - 스테이징된 파일을 분석해 **최적의 커밋 메시지 자동 생성**  
 - 생성된 메시지는 클립보드로 자동 복사  
 - 불필요한 설명 없이 “한 번에 깔끔한 커밋” 가능  
-![Feature 2](./images/demo_recommand_commitmessage.gif)
+<img src="./images/demo_recommand_commitmessage.gif" alt="AI 커밋메시지 추천 시연" width="1000" />
 
 
 ---
