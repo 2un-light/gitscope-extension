@@ -2,7 +2,7 @@
   "name": "gitscope",
   "displayName": "GitScope",
   "description": "AI-Powered Git Workflow Optimization Tool",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "publisher": "tomacato",
   "icon": "GitScopeIcon.png",
   "repository": {
