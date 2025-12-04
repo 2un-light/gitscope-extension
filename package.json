@@ -2,7 +2,7 @@
   "name": "gitscope",
   "displayName": "GitScope",
   "description": "AI-Powered Git Workflow Optimization Tool",
-  "version": "1.0.1",
+  "version": "1.0.8",
   "publisher": "tomacato",
   "icon": "GitScopeIcon.png",
   "repository": {
@@ -135,9 +135,11 @@
     "simple-git": "^3.30.0"
   },
   "files": [
+    "images",
     "out/**/*",
     "src/webview-ui/**/*",
-    "GitScopeIcon.png"
+    "GitScopeIcon.png",
+    "README.md"
   ]
 
 }

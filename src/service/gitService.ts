@@ -190,7 +190,7 @@ export class GitService implements IGitService {
     async pullChanges(remote: string = 'origin', branch: string = ''): Promise<PullResult> {
         try {
             
-            const pullArgs: string[] = branch ? [remote, branch] : [remote];
+            const pullArgs: string[] = branch ? [remote, branch] : [remote, 'main'];
             return await this.git.pull(pullArgs);
 
         }catch (error) {
@@ -212,7 +212,6 @@ export class GitService implements IGitService {
 
     async commitChanges(message: string): Promise<void> {
         try {
-            //커밋 전, Deleted, Renamed 상태의 파일 스테이징
             await this.git.commit(message);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : '알 수 없는 Git 오류';

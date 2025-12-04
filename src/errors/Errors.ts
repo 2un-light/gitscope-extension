@@ -4,7 +4,7 @@ import { BaseError, HttpBaseError, HttpBaseErrorWithMessage } from "./baseErrors
 export class MissingApiKeyError extends BaseError {}
 export class ApiKeyDeleteError extends BaseError {}
 
-export class QuotaError extends HttpBaseError {}
+export class QuotaError extends HttpBaseErrorWithMessage {}
 export class HttpError extends HttpBaseError {}
 export class ApiCommunicationError extends HttpBaseErrorWithMessage {}
 export class ApiKeyInvalidError extends HttpBaseErrorWithMessage {}
