@@ -2,6 +2,7 @@ import { ICommand } from "../interfaces/ICommand";
 import { IGitService } from "../interfaces/IGitService";
 import { IUserInteraction } from "../interfaces/IUserInteraction";
 import { ERROR_MESSAGES } from "../errors/errorMessages";
+import { ShowNavigator } from "./ShowNavigator";
 
 export class ExecuteCreateTagAndPush implements ICommand{
     private git: IGitService;
@@ -12,9 +13,11 @@ export class ExecuteCreateTagAndPush implements ICommand{
         this.ui = uiService;
     }
 
-    public async execute(): Promise<void> {
+    public async execute(buttonId?: string): Promise<void> {
         this.ui.clearOutput();
         this.ui.output('🏷️ Git 태그 생성 및 Push 시작');
+
+        const activePanel = ShowNavigator.activePanel;
 
         try {
             //1. 현재 브랜치가 main 또는 master인지 확인
@@ -67,12 +70,26 @@ export class ExecuteCreateTagAndPush implements ICommand{
             await this.git.pushTags(tagName);
             this.ui.output(`🎉 원격 태그 Push 성공: 태그 '${tagName}'이(가) 원격에 반영되었습니다.`);
 
+            activePanel?.webview.postMessage({
+                type: 'commandSuccess',
+                buttonId: buttonId,
+                commandId: 'createTagAndPush'
+            });
+
         } catch (error) {
             this.ui.showErrorMessage(ERROR_MESSAGES.tagCommandFailed, {});
 
             // 사용자에게 오류 메시지 출력
             const detailedMessage = error instanceof Error ? error.message : String(error);
             this.ui.output(`⚠️ Tag Command Error: ${detailedMessage}`);
+
+            
+            activePanel?.webview.postMessage({
+                type: 'commandError',
+                buttonId: buttonId,
+                commandId: 'createTagAndPush',
+                error: detailedMessage
+            });
         }
     }
 

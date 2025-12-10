@@ -220,7 +220,7 @@ export class GitService implements IGitService {
     }
 
 
-    async pushChanges(remote: string = 'origin', branch: string = ''): Promise<void> {
+    async pushChanges(remote: string = 'origin', branch: string): Promise<void> {
         try {
             //현재 브랜치 이름 가져오기
             const branchName = branch || await this.git.revparse(['--abbrev-ref', 'HEAD']);

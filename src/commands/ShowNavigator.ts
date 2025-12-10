@@ -5,6 +5,8 @@ import * as fs from 'fs';
 import { IUserInteraction } from '../interfaces/IUserInteraction';
 
 export class ShowNavigator implements ICommand {
+    public static activePanel: vscode.WebviewPanel | undefined = undefined;
+
     private context: vscode.ExtensionContext;
     private ui: IUserInteraction;
 
@@ -17,6 +19,10 @@ export class ShowNavigator implements ICommand {
      * WebView panel 생성, HTML 콘텐츠를 로드하여 메시지 핸들러 설정
      */
     public async execute(): Promise<void> {
+        if (ShowNavigator.activePanel) {
+            ShowNavigator.activePanel.reveal(vscode.ViewColumn.One);
+            return;
+        }
         const panel = vscode.window.createWebviewPanel (
             'gitFlowNavigator',
             'GitScope Navigator',
@@ -26,6 +32,15 @@ export class ShowNavigator implements ICommand {
                 localResourceRoots: [vscode.Uri.file(path.join(this.context.extensionPath, 'src', 'webview-ui'))]
             }
         );
+        
+
+        ShowNavigator.activePanel = panel;
+
+
+
+        panel.onDidDispose(() => {
+            ShowNavigator.activePanel = undefined;
+        }, null, this.context.subscriptions);
 
         // html 파일 내용 로드 및 설정
         const webviewUiPath = path.join(this.context.extensionPath, 'src', 'webview-ui');
@@ -52,17 +67,18 @@ export class ShowNavigator implements ICommand {
         
         //웹뷰에서 확장 기능으로 메시지(명령) 전송 시 처리
         panel.webview.onDidReceiveMessage(
-            message => {
-                if (message.command) {
-                    vscode.commands.executeCommand(message.command).then(
-                        () => {
-                            this.ui.output(`[GitScope] 명령어 실행 요청 성공: ${message.command}`);
-                        },
-                        (error) => {
-                            this.ui.showErrorMessage(`[GitScope] 명령어 실행 실패: ${message.command}. 
+            async message => {
+                const commandId = message.command;
+                const buttonId = message.buttonId;
+                if (commandId) {
+
+                    try {
+                        await vscode.commands.executeCommand(commandId, buttonId);
+                        this.ui.output("[GitScope] 명령어 실행 요청 성공");
+                    } catch (error) {
+                        this.ui.showErrorMessage(`[GitScope] 명령어 실행 실패. 
                                 오류: ${error instanceof Error ? error.message : String(error)}`, {});
-                        }
-                    );
+                    }
                 }
             },
             undefined,

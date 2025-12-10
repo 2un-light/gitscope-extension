@@ -1,17 +1,14 @@
-import * as vscode from 'vscode';
-
 import { PROMPTS } from "../constants/prompts";
 import { ERROR_MESSAGES } from "../errors/errorMessages";
-import { getAPIKeyFromStore } from "../utils/keyUtils";
 import { InvalidArgumentError, MissingApiKeyError } from '../errors/Errors';
 import { IGeminiService } from '../interfaces/IGeminiService';
 import { IGeminiClient } from '../interfaces/IGeminiClientService';
+import { IConfigService } from '../interfaces/IConfigService';
 
 export class GeminiService implements IGeminiService {
     constructor(
-        private context : vscode.ExtensionContext,
-        private clientFactory: (apiKey: string) => IGeminiClient
-    
+        private configService: IConfigService,
+        private clientFactory: (apiKey: string, config: IConfigService) => IGeminiClient,
     ){}
 
     
@@ -20,7 +17,7 @@ export class GeminiService implements IGeminiService {
      * @returns 
      */
     private async getApiKey(): Promise<string> {
-        const key = await getAPIKeyFromStore(this.context);
+        const key = await this.configService.getSecret();
         if(!key) throw new MissingApiKeyError(ERROR_MESSAGES.missingApiKey);
         return key;
     }
@@ -37,7 +34,7 @@ export class GeminiService implements IGeminiService {
         }
 
         const apiKey = await this.getApiKey();
-        const client = this.clientFactory(apiKey);
+        const client = this.clientFactory(apiKey, this.configService);
 
         const prompt = PROMPTS.commitMessage(diff, currentBranch);
         return client.requestGeminiAPI(prompt);
@@ -65,7 +62,7 @@ export class GeminiService implements IGeminiService {
         }
 
         const apiKey = await this.getApiKey();
-        const client = this.clientFactory(apiKey);
+        const client = this.clientFactory(apiKey, this.configService);
 
         const prompt = PROMPTS.branchNmaes(diff, count);
         const raw = await client.requestGeminiAPI(prompt);

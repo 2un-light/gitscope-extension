@@ -7,6 +7,7 @@ import { ICommand } from '../interfaces/ICommand';
 import { IUserInteraction } from '../interfaces/IUserInteraction';
 import { ModifiedFileQuickPickItem } from '../interfaces/IModifiedFileQuickPickItem';
 import { GitFileStatus } from '../types/gitTypes';
+import { ShowNavigator } from './ShowNavigator';
 
 export class GenerateCommitMessageCommand implements ICommand {
     private context: vscode.ExtensionContext;
@@ -104,9 +105,11 @@ export class GenerateCommitMessageCommand implements ICommand {
     }
 
 
-    public async execute(): Promise<void> {
+    public async execute(buttonId?: string): Promise<void> {
         this.ui.clearOutput();
         this.ui.output('🪶 커밋 메시지 추천 시작');
+
+        const activePanel = ShowNavigator.activePanel;
 
         try {
 
@@ -137,12 +140,25 @@ export class GenerateCommitMessageCommand implements ICommand {
             this.ui.output('📋 클립보드에 복사 완료!');
             this.ui.output('🚀 커밋을 실행하려면 명령 팔레트에서 "GitScope: 🚀 [COMMIT] 변경 사항 Commit"를 실행하세요.');
 
+            activePanel?.webview.postMessage({
+                type: 'commandSuccess',
+                buttonId: buttonId,
+                commandId: 'generateMessage'
+            });
+
         } catch (error) {
 
             this.ui.showErrorMessage(ERROR_MESSAGES.generateCommitMessageFailed, {});
                         
             const detailedMessage = error instanceof Error ? error.stack || error.message : String(error);
             this.ui.output(`⚠️ Recommand Commit Message Error: ${detailedMessage}`);
+
+            activePanel?.webview.postMessage({
+                type: 'commandError',
+                buttonId: buttonId,
+                commandId: 'generateMessage',
+                error: detailedMessage
+            });
 
         }
     }

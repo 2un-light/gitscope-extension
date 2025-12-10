@@ -37,4 +37,6 @@ export const ERROR_MESSAGES = {
 
     tagCommandFailed: "Tag 생성 및 push 실패",
 
+    selectGeminiModelFailed: "Gemini 모델 선택 실패",
+
 }

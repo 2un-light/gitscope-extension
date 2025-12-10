@@ -1,5 +1,6 @@
 import { ICommand } from '../interfaces/ICommand';
 import { IUserInteraction } from '../interfaces/IUserInteraction';
+import { ShowNavigator } from './ShowNavigator';
 
 export class WelcomeCommand implements ICommand {
     private ui: IUserInteraction;
@@ -8,8 +9,10 @@ export class WelcomeCommand implements ICommand {
         this.ui = uiService;
     }
 
-    public async execute(): Promise<void> {
+    public async execute(buttonId?: string): Promise<void> {
         this.ui.clearOutput();
+
+        const activePanel = ShowNavigator.activePanel;
         
         // 1. 환영 메시지 및 아스키 아트
         this.ui.output(' ');
@@ -41,5 +44,11 @@ export class WelcomeCommand implements ICommand {
         this.ui.output('* 따라서 GitScope 사용에 따른 API 호출 요금은 **사용자 본인에게 부과**됩니다.');
         this.ui.output('--------------------------------------');
         this.ui.output(' ');
+
+        activePanel?.webview.postMessage({
+                type: 'commandSuccess',
+                buttonId: buttonId,
+                commandId: 'startGuide'
+        });
     }
 }

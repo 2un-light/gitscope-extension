@@ -4,6 +4,7 @@ import { ERROR_MESSAGES } from '../errors/errorMessages';
 import { IGitService } from '../interfaces/IGitService';
 import { ICommand } from '../interfaces/ICommand';
 import { IUserInteraction } from '../interfaces/IUserInteraction';
+import { ShowNavigator } from './ShowNavigator';
 
 export class ExecuteCloneCommand implements ICommand {
 
@@ -64,9 +65,12 @@ export class ExecuteCloneCommand implements ICommand {
         }
     }
 
-    public async execute(): Promise<void> {
+    public async execute(buttonId?: string): Promise<void> {
         this.ui.clearOutput();
         this.ui.output('🔗 Git Clone 실행');
+
+        const activePanel = ShowNavigator.activePanel;
+
         try {
 
             //원격 URL 입력
@@ -113,12 +117,25 @@ export class ExecuteCloneCommand implements ICommand {
 
             await this.showOpenFolderPrompt(localPath);
 
+            activePanel?.webview.postMessage({
+                type: 'commandSuccess',
+                buttonId: buttonId,
+                commandId: 'clone'
+            });
+
         } catch (error) {
 
             this.ui.showErrorMessage(ERROR_MESSAGES.cloneRepositoryFailed, {});
 
             const detailedMessage = error instanceof Error ? error.stack || error.message : String(error);
             this.ui.output(`⚠️ Git Clone Error: ${detailedMessage}`);
+
+            activePanel?.webview.postMessage({
+                type: 'commandError',
+                buttonId: buttonId,
+                commandId: 'clone',
+                error: detailedMessage
+            });
             
         }
     }

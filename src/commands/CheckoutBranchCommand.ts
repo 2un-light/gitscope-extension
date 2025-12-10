@@ -3,6 +3,7 @@ import { ICommand } from '../interfaces/ICommand';
 import { IGitService } from '../interfaces/IGitService';
 import { IUserInteraction } from '../interfaces/IUserInteraction';
 import { BranchQuickPickItem } from '../interfaces/IBranchQuickPickItem';
+import { ShowNavigator } from './ShowNavigator';
 
 export class ExecuteCheckoutBranchCommand implements ICommand {
     private git: IGitService;
@@ -29,9 +30,11 @@ export class ExecuteCheckoutBranchCommand implements ICommand {
     }
 
 
-    public async execute(): Promise<void> {
+    public async execute(buttonId?: string): Promise<void> {
         this.ui.clearOutput();
         this.ui.output('🔄 Git 브랜치 전환 시작');
+
+        const activePanel = ShowNavigator.activePanel;
 
         try {
             this.ui.output('🔄 로컬 브랜치 목록을 가져오는 중...');
@@ -69,12 +72,25 @@ export class ExecuteCheckoutBranchCommand implements ICommand {
             await this.git.checkout(branchToCheckout);
             this.ui.output(`✅ 브랜치 전환 성공 '${branchToCheckout}'로 성공적으로 전환되었습니다. `);
 
+            activePanel?.webview.postMessage({
+                type: 'commandSuccess',
+                buttonId: buttonId,
+                commandId: 'checkoutBranch'
+            });
 
-        } catch (error) {            
-            this.ui.showErrorMessage(ERROR_MESSAGES.checkoutBranchFailed, {});
 
+        } catch (error) {     
+            
             const detailedMessage = error instanceof Error ? error.stack || error.message : String(error);
+            this.ui.showErrorMessage(ERROR_MESSAGES.checkoutBranchFailed, {});
             this.ui.output(`⚠️ Branch Check out Error: ${detailedMessage}`);
+
+            activePanel?.webview.postMessage({
+                type: 'commandError',
+                buttonId: buttonId,
+                commandId: 'checkoutBranch',
+                error: detailedMessage
+            });
         }
     }
 }
