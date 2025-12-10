@@ -4,6 +4,7 @@ import { IGitService } from '../interfaces/IGitService';
 import { ICommand } from '../interfaces/ICommand';
 import { IUserInteraction } from '../interfaces/IUserInteraction';
 import { BranchQuickPickItem } from '../interfaces/IBranchQuickPickItem';
+import { ShowNavigator } from './ShowNavigator';
 
 export class ExecuteMergeCommand implements ICommand {
     private git: IGitService;
@@ -25,8 +26,9 @@ export class ExecuteMergeCommand implements ICommand {
         }));
     }
 
-    public async execute(): Promise<void> {
+    public async execute(buttonId?: string): Promise<void> {
         this.ui.clearOutput();
+        const activePanel = ShowNavigator.activePanel;
         try {
             const currentBranch = await this.git.getCurrentBranchName();
             this.ui.output(`✅ 현재 브랜치: ${currentBranch}`);
@@ -72,6 +74,12 @@ export class ExecuteMergeCommand implements ICommand {
                 vscode.window.showInformationMessage(`✅ 병합 성공! (${currentBranch} <- ${sourceBranch})`);
             }
 
+            activePanel?.webview.postMessage({
+                type: 'commandSuccess',
+                buttonId: buttonId,
+                commandId: 'merge'
+            });
+
 
 
         } catch (error) {
@@ -81,6 +89,12 @@ export class ExecuteMergeCommand implements ICommand {
             const detailedMessage = error instanceof Error ? error.stack || error.message : String(error);
             this.ui.output(`⚠️ Merge Error: ${detailedMessage}`);
 
+            activePanel?.webview.postMessage({
+                type: 'commandError',
+                buttonId: buttonId,
+                commandId: 'merge',
+                error: detailedMessage
+            });
         }
     }
 

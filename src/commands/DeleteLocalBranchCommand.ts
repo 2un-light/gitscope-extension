@@ -1,9 +1,9 @@
-import * as vscode from 'vscode';
 import { ERROR_MESSAGES } from '../errors/errorMessages';
 import { ICommand } from '../interfaces/ICommand';
 import { IUserInteraction } from '../interfaces/IUserInteraction';
 import { IGitService } from '../interfaces/IGitService';
 import { BranchQuickPickItem } from '../interfaces/IBranchQuickPickItem';
+import { ShowNavigator } from './ShowNavigator';
 
 export class ExecuteDeleteLocalBranchCommand implements ICommand {
     private git: IGitService;
@@ -25,8 +25,12 @@ export class ExecuteDeleteLocalBranchCommand implements ICommand {
         }));
     }
 
-   public async execute(): Promise<void> {
+   public async execute(buttonId?: string): Promise<void> {
     this.ui.clearOutput();
+    this.ui.output('로컬 브랜치 삭제 시작');
+
+    const activePanel = ShowNavigator.activePanel;
+
     try {
             //현재 브랜치 확인
             const currentBranch = await this.git.getCurrentBranchName();
@@ -72,12 +76,25 @@ export class ExecuteDeleteLocalBranchCommand implements ICommand {
 
             this.ui.output(`🎉 로컬 브랜치 '${branchDelete}'가 성공적으로 삭제되었습니다.`);
 
+            activePanel?.webview.postMessage({
+                type: 'commandSuccess',
+                buttonId: buttonId,
+                commandId: 'deleteLocalBranch'
+            });
+
         } catch (error) {
 
             this.ui.showErrorMessage(ERROR_MESSAGES.deleteBranchFailed, {});
             
             const detailedMessage = error instanceof Error ? error.stack || error.message : String(error);
             this.ui.output(`⚠️ Branch Delete Error: ${detailedMessage}`);
+
+            activePanel?.webview.postMessage({
+                type: 'commandError',
+                buttonId: buttonId,
+                commandId: 'deleteLocalBranch',
+                error: detailedMessage
+            });
             
         }
    }

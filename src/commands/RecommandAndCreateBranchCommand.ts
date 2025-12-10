@@ -7,6 +7,7 @@ import { ICommand } from '../interfaces/ICommand';
 import { IUserInteraction } from '../interfaces/IUserInteraction';
 import { ModifiedFileQuickPickItem } from '../interfaces/IModifiedFileQuickPickItem';
 import { GitFileStatus } from '../types/gitTypes';
+import { ShowNavigator } from './ShowNavigator';
 
 const MODE_MANUAL = 'manualMode';
 const MODE_GEMINI = 'geminiMode';
@@ -213,9 +214,11 @@ export class ExecuteRecommandAndCreateBranchCommand implements ICommand {
     }
 
     //실행 함수
-    public async execute(): Promise<void> {
+    public async execute(buttonId?: string): Promise<void> {
         this.ui.clearOutput();
         this.ui.output('🌳 Git 브랜치명 추천 시작');
+
+        const activePanel = ShowNavigator.activePanel;
     
         let branchName: string | undefined;
 
@@ -246,6 +249,13 @@ export class ExecuteRecommandAndCreateBranchCommand implements ICommand {
             //브랜치 생성 및 전환
             await this.createBranch(branchName);
             await this.promptAndCheckout(branchName);
+            
+
+            activePanel?.webview.postMessage({
+                type: 'commandSuccess',
+                buttonId: buttonId,
+                commandId: 'createBranch'
+            });
 
 
         } catch (error) {
@@ -256,6 +266,13 @@ export class ExecuteRecommandAndCreateBranchCommand implements ICommand {
 
             branchName = await this.inputBranchName();
             if (!branchName) return;
+
+            activePanel?.webview.postMessage({
+                type: 'commandError',
+                buttonId: buttonId,
+                commandId: 'createBranch',
+                error: detailedMessage
+            });
 
         }
     }

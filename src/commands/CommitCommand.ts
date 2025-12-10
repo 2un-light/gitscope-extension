@@ -3,6 +3,7 @@ import { ERROR_MESSAGES } from '../errors/errorMessages';
 import { IGitService } from '../interfaces/IGitService';
 import { ICommand } from '../interfaces/ICommand';
 import { IUserInteraction } from '../interfaces/IUserInteraction';
+import { ShowNavigator } from './ShowNavigator';
 
 export class ExecuteCommitCommand implements ICommand{
     private git: IGitService;
@@ -75,8 +76,11 @@ export class ExecuteCommitCommand implements ICommand{
 
 
 
-    public async execute(): Promise<void> {
+    public async execute(buttonId?: string): Promise<void> {
         this.ui.clearOutput();
+        this.ui.output('🚀 Commit 시작');
+        const activePanel = ShowNavigator.activePanel;
+
         try {
 
             //1. 클립 보드에서 커밋 메시지 가져오기
@@ -98,6 +102,13 @@ export class ExecuteCommitCommand implements ICommand{
 
            this.ui.output('🎉 커밋 성공!');
 
+           
+            activePanel?.webview.postMessage({
+                type: 'commandSuccess',
+                buttonId: buttonId,
+                commandId: 'commit'
+            });
+
 
         } catch (error) {
             
@@ -105,6 +116,13 @@ export class ExecuteCommitCommand implements ICommand{
 
             const detailedMessage = error instanceof Error ? error.stack || error.message : String(error);
             this.ui.output(`⚠️ Git Commit Error: ${detailedMessage}`);
+
+            activePanel?.webview.postMessage({
+                type: 'commandError',
+                buttonId: buttonId,
+                commandId: 'commit',
+                error: detailedMessage
+            });
 
         }
     }

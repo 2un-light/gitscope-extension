@@ -3,13 +3,58 @@ import { COMMAND_MAP, FLOW_STEPS, NOOP_MESSAGES, MESSAGE_DISPLAY_TIME, UI_STRING
 // --- 전역 변수 초기화 ---
 let currentFlow = 'common';
 const vscode = typeof acquireVsCodeApi !== 'undefined' ? acquireVsCodeApi() : {
-    postMessage: (message) => console.log('Simulating VS Code postMessage:', message)
+    postMessage: (message) => console.log('VS Code postMessage:', message)
 };
 
+//클릭된 버튼들의 상태 저장
+let clickedButtons = new Set();
 
+window.addEventListener('message', event => {
+    const message = event.data;
+    
+    switch (message.type) {
+        case 'commandSuccess':
+            // 명령어 성공 시 해당 버튼을 완료 상태로 변경
+            markButtonAsCompleted(message.buttonId);
+            break;
+        case 'commandError':
+            // 명령어 실패 시 에러 메시지 표시
+            showMessage(message.error || '명령어 실행에 실패했습니다.', 'error');
+            break;
+                
+    }
+});
+
+// 버튼을 완료 상태로 마킹하는 함수
+function markButtonAsCompleted(buttonId) {
+    // 현재 Flow에서 해당 commandId를 가진 버튼 찾기
+    const button = document.querySelector(`[data-button-id="${buttonId}"]`);
+    
+
+
+    if (button && !button.classList.contains('command-button-noop')) {
+        button.classList.add('clicked');
+
+        clickedButtons.add(buttonId);
+        
+        // 액션 텍스트를 "완료"로 변경
+        const actionText = button.querySelector('.action-text');
+        if (actionText) {
+            actionText.textContent = UI_STRINGS.ACTION_COMPLETED;
+        }
+    }
+
+
+    // 상태 저장
+    const currentState = vscode.getState() || {};
+    vscode.setState({
+        ...currentState,
+        clickedButtons: Array.from(clickedButtons)
+    });
+
+}
 
 // ## DOM 헬퍼 함수 (Utility Functions)
-
 
 /**
  * HTML 요소와 클래스 배열을 받아 요소를 생성하는 헬퍼 함수
@@ -88,6 +133,20 @@ function applyAccordionStates(savedStates) {
     });
 }
 
+//클릭된 버튼 상태 복원 함수
+function applyClickedButtonStates(clickedButtonsArray) {
+    clickedButtonsArray.forEach(buttonId => {
+        const button = document.querySelector(`[data-button-id="${buttonId}"]`);
+        if (button && !button.classList.contains('command-button-noop')) {
+            button.classList.add('clicked');
+
+            const actionText = button.querySelector('.action-text');
+            if (actionText) {
+                actionText.textContent = UI_STRINGS.ACTION_COMPLETED;
+            }
+        }
+    });
+}
 
 // ## 컴포넌트 생성 함수 (Component Rendering)
 
@@ -143,11 +202,20 @@ function createBranchesSection(branches) {
 /**
  * 단일 명령어 버튼 요소를 생성하고 반환
  */
-function createCommandButton(step) {
+function createCommandButton(step, stepIndex) {
     const isNoop = step.cmd === "noop";
     const button = createEl('button', ['command-button']);
     button.setAttribute('data-cmd', step.cmd);
-    button.onclick = (event) => executeCommand(step.cmd, event);
+
+    const buttonId = `${currentFlow}-step-${stepIndex}`;
+    button.setAttribute('data-button-id', buttonId);
+
+    const arrowSpan = createEl('span', ['action-text']);
+    arrowSpan.textContent = isNoop ? `${UI_STRINGS.ACTION_NOOP}` : `${UI_STRINGS.ACTION_RUN}`;
+
+    button.onclick = (event) => {
+        executeCommand(step.cmd, buttonId, event);
+    };
 
     const labelContainer = createEl('div', ['flex', 'items-center', 'space-x-4']);
 
@@ -159,9 +227,6 @@ function createCommandButton(step) {
 
     labelContainer.appendChild(iconSpan);
     labelContainer.appendChild(textSpan);
-
-    const arrowSpan = createEl('span', ['action-text']);
-    arrowSpan.textContent = isNoop ? `${UI_STRINGS.ACTION_NOOP}` : `${UI_STRINGS.ACTION_RUN}`;
 
     
     if(isNoop) {
@@ -178,7 +243,7 @@ function createCommandButton(step) {
 /**
  * 아코디언 섹션을 생성하고 반환
  */
-function createAccordionSection(title, steps) {
+function createAccordionSection(title, steps, startIndex) {
     const details = createEl('details', ['accordion-details']);
 
     details.addEventListener('toggle', () => {
@@ -206,8 +271,8 @@ function createAccordionSection(title, steps) {
 
     const stepsContainer = createEl('div', ['accordion-steps-container']);
 
-    steps.forEach(step => {
-        stepsContainer.appendChild(createCommandButton(step));
+    steps.forEach((step, index) => {
+        stepsContainer.appendChild(createCommandButton(step, startIndex + index));
     });
 
     details.appendChild(stepsContainer);
@@ -220,7 +285,7 @@ function createAccordionSection(title, steps) {
 /**
  * VS Code 확장 기능으로 명령을 전송
  */
-function executeCommand(commandId, event) {
+function executeCommand(commandId, buttonId, event) {
     if (commandId === "noop") {
         const buttonElement = event.currentTarget;
         const label = buttonElement.querySelector('.step-label-text').textContent.trim(); 
@@ -248,6 +313,7 @@ function executeCommand(commandId, event) {
 
     vscode.postMessage({
         command: command,
+        buttonId: buttonId,
         text: `GitScope Command: ${command} 실행 요청`
     });
 }
@@ -263,7 +329,16 @@ export function selectFlow(flowKey) {
     messageArea.classList.add('hidden');
     
     const accordionStates = getAccordionStates();
-    vscode.setState({ currentFlow: flowKey, accordionStates: accordionStates });
+
+    if (currentFlow !== flowKey) {
+        clickedButtons.clear();
+    }
+    
+    vscode.setState({ 
+        currentFlow: flowKey, 
+        accordionStates: accordionStates,
+        clickedButtons: Array.from(clickedButtons) // ✅ [추가] 클릭 상태 저장
+    });
 
     currentFlow = flowKey;
     
@@ -302,14 +377,21 @@ export function selectFlow(flowKey) {
         contentArea.appendChild(separator);
     }
 
+
     // 5. 명령어 목록 생성 (아코디언 또는 단순 목록)
+    let globalStepIndex = 0;
     flowData.steps.forEach(step => {
         if (step.isAccordion) {
-            contentArea.appendChild(createAccordionSection(step.accordionTitle, step.accordionSteps));
+            contentArea.appendChild(createAccordionSection(step.accordionTitle, step.accordionSteps, globalStepIndex));
+            globalStepIndex += step.accordionSteps.length;
         } else {
-            contentArea.appendChild(createCommandButton(step));
+            contentArea.appendChild(createCommandButton(step, globalStepIndex));
+            globalStepIndex++;
         }
     });
+
+    applyClickedButtonStates(Array.from(clickedButtons));
+
 }
 
 
@@ -325,13 +407,22 @@ function init() {
     const state = vscode.getState();
     const savedFlow = state ? state.currentFlow : null;
     const savedAccordionStates = state ? state.accordionStates : [];
+    const savedClickedButtons = state ? state.clickedButtons : [];
+
+    if (savedClickedButtons && savedClickedButtons.length > 0) {
+        clickedButtons = new Set(savedClickedButtons);
+    }
 
     // 초기 로드 시 'common' flow를 선택
     selectFlow(savedFlow || 'common');
 
-    // [개선] DOM이 생성된 후, 저장된 아코디언 상태 적용
+    // DOM이 생성된 후, 저장된 아코디언 상태 적용
     if (savedAccordionStates && savedAccordionStates.length > 0 && savedFlow === currentFlow) {
         applyAccordionStates(savedAccordionStates);
+    }
+
+    if (savedClickedButtons && savedClickedButtons.length > 0) {
+        applyClickedButtonStates(savedClickedButtons);
     }
 }
 

@@ -15,6 +15,7 @@ export const COMMAND_MAP = {
     "push": "gitScope.executePushCommand",
     "deleteLocalBranch": "gitScope.executeDeleteLocalBranchCommand",
     "createTagAndPush": "gitScope.createTagAndPushCommand",
+    "selectGeminiModel": "gitScope.selectGeminiModel",
 };
 
 /**
@@ -29,6 +30,7 @@ export const FLOW_STEPS = {
         steps: [
             { label: "GitScope 사용 안내", cmd: "startGuide", icon: "🔭" },
             { label: "Gemini API Key 설정 (필수)", cmd: "configKey", icon: "🔑" },
+            { label: "Gemini 모델 선택", cmd: "selectGeminiModel", icon: "🤖" },
             { label: "원격 저장소 클론 (필수)", cmd: "clone", icon: "🔗" },
         ]
     },
@@ -224,6 +226,7 @@ export const UI_STRINGS = {
     ACCORDION_SUMMARY_SUFFIX: '(클릭하여 펼치기)',
     ACTION_RUN: '실행',
     ACTION_NOOP: '안내',
+    ACTION_COMPLETED: '완료',
 };
 
 

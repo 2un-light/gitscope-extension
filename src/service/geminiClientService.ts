@@ -3,21 +3,30 @@ import { GeminiRequest, GeminiResponse } from "../types/geminiTypes";
 import { ApiKeyInvalidError, HttpError, QuotaError } from "../errors/Errors";
 import { ERROR_MESSAGES } from "../errors/errorMessages";
 import { IGeminiClient } from "../interfaces/IGeminiClientService";
-import { GEMINI_API_URL } from "../constants/geminiConstants";
+import { IConfigService } from "../interfaces/IConfigService";
+import { DEFAULT_MODEL, GEMINI_MODELS } from "../constants/geminiConstants";
 
 export class GeminiClient implements IGeminiClient {
 
-    constructor(private apiKey: string) {}
+    constructor(
+        private apiKey: string,
+        private configService: IConfigService,
+    ) {}
 
     /**
-     *  공통 API 요청 함수
-     * @param prompt 요청 프롬프트
-     * @returns GeminiResponse
-     * 역할:
-     * 1. HTTP 통신 (axios) 처리
-     * 2. HTTP 상태 코드 기반 오류 반환 (400번대)
-     * 3. 응답에서 최종 텍스트를 파싱
+     * 현재 선택된 모델의 API URL 가져오기
      */
+    private async getApiUrl(): Promise<string> {
+        const selectedModel: string = (await this.configService.get<string>()) ?? DEFAULT_MODEL.name;
+
+        const model = Object.values(GEMINI_MODELS).find(
+            m => m.name === selectedModel
+        );
+
+        return model?.url ?? DEFAULT_MODEL.url;
+
+    }
+    
     async requestGeminiAPI(prompt: string): Promise<string> {
 
         const requestBody: GeminiRequest = {
@@ -25,8 +34,9 @@ export class GeminiClient implements IGeminiClient {
         };
 
         try {
+            const apiUrl = await this.getApiUrl();
             const response = await axios.post<GeminiResponse>(
-                `${GEMINI_API_URL}?key=${this.apiKey}`,
+                `${apiUrl}?key=${this.apiKey}`,
                 requestBody
             );
 
@@ -34,6 +44,7 @@ export class GeminiClient implements IGeminiClient {
             const text = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
             return text?.trim() ?? "";
+
 
         } catch (error: any) {
             const status = error.response?.status;

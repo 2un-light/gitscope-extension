@@ -314,13 +314,35 @@ body {
     box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
 }
 
+.command-button.clicked {
+    background-color: rgba(16, 185, 129, 0.8);
+    border-color: #10b981;
+}
+
+.command-button.clicked:hover {
+    background-color: rgba(16, 185, 129, 0.9);
+}
+
+.command-button.clicked .step-label-text {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.command-button.clicked .step-number {
+    color: #ffffff;
+}
+
+.command-button.clicked .action-text {
+    color: #ffffff;
+}
+
 .step-number {
     font-size: 1.25rem;
     font-weight: 600;
     color: #64748b;
 }
 
-/* 실행 버튼의 액션 텍스트 ('→ 실행') - 파란색 */
+/* 실행 버튼의 액션 텍스트 */
 .action-text {
     color: #34d399; /* 밝은 초록색 */
     font-weight: 700;
@@ -375,6 +397,11 @@ body {
     color: #fbbf24;
     font-weight: 700;
     font-size: 0.875rem;
+}
+
+.command-button-noop.clicked {
+    background-color: rgba(234, 179, 8, 0.25);
+    border-color: rgba(234, 179, 8, 0.25);
 }
 
 
