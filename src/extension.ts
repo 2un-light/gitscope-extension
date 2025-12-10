@@ -22,12 +22,12 @@ import { ExecuteMergeCommand } from './commands/MergeCommand';
 import { ExecuteDeleteLocalBranchCommand } from './commands/DeleteLocalBranchCommand';
 
 import { GenerateCommitMessageCommand } from './commands/generateCommitMessageCommand';
-import { WelcomeCommand } from './commands/WelcomeCommand';
 import { ShowNavigator } from './commands/ShowNavigator';
 import { ExecuteCreateTagAndPush } from './commands/CreateTagAndPush';
 import { SelectGeminiModelCommand } from './commands/SelectGeminiModelCommand';
 import { IConfigService } from './interfaces/IConfigService';
 import { ConfigService } from './service/configService';
+import { WelcomeCommand } from './commands/welcomeCommand';
 
 export function activate(context: vscode.ExtensionContext) {
 
