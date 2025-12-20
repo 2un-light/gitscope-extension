@@ -16,7 +16,7 @@ export class GitService implements IGitService {
         try {
             await this.git.clone(url, localPath);
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : '알 수 없는 Git 오류';
+            const errorMessage = error instanceof Error ? error.message : 'Unknown Git error';
             throw new GitError(errorMessage);
         }
     }
@@ -26,9 +26,9 @@ export class GitService implements IGitService {
         try {
             await this.git.branch([branchName]);
         }catch(error) {
-            const errorMessage = error instanceof Error ? error.message : '알 수 없는 Git 오류';
+            const errorMessage = error instanceof Error ? error.message : 'Unknown Git error';
             if (errorMessage.includes('already exists')) {
-                throw new GitError(`❌ 브랜치 생성 실패: '${branchName}' 브랜치가 이미 존재합니다.`);
+                throw new GitError(`❌ Branch creation failed: Branch '${branchName}' already exists.`);
             }
             throw new GitError(errorMessage);
         }
@@ -40,7 +40,7 @@ export class GitService implements IGitService {
             const branches = await this.git.branchLocal();
             return branches.all;
         }catch(error) {
-            const errorMessage = error instanceof Error ? error.message : '알 수 없는 Git 오류';
+            const errorMessage = error instanceof Error ? error.message : 'Unknown Git error';
             throw new GitError(errorMessage);
         }
     }
@@ -52,7 +52,7 @@ export class GitService implements IGitService {
             const branchSummary = await this.git.branchLocal();
             return branchSummary.current;
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : '알 수 없는 Git 오류';
+            const errorMessage = error instanceof Error ? error.message : 'Unknown Git error';
             throw new GitError(errorMessage);
         }
     }
@@ -63,13 +63,13 @@ export class GitService implements IGitService {
         try {
             await this.git.checkout(branchName);
         }catch(error) {
-            const errorMessage = error instanceof Error ? error.message : '알 수 없는 Git 오류';
+            const errorMessage = error instanceof Error ? error.message : 'Unknown Git error';
             
             if (errorMessage.includes('did not match any file')) {
-                throw new GitError(`❌ 전환 실패: '${branchName}' 브랜치가 존재하지 않습니다.`);
+                throw new GitError(`❌ Switch failed: Branch '${branchName}' does not exist.`);
             }
             if (errorMessage.includes('local changes would be overwritten')) {
-                throw new GitError(`⚠️ 전환 실패: Uncommitted 변경 사항이 있어 전환할 수 없습니다. 커밋 또는 Stash 후 다시 시도하세요.`);
+                throw new GitError(`⚠️ Switch failed: You have uncommitted changes. Please commit or stash them before switching branches.`);
             }
 
             throw new GitError(errorMessage);
@@ -88,7 +88,7 @@ export class GitService implements IGitService {
                     isDeleted: file.working_dir === 'D',
                 }));
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : '알 수 없는 Git 오류';
+            const errorMessage = error instanceof Error ? error.message : 'Unknown Git error';
             throw new GitError(errorMessage);
         }
     }
@@ -106,7 +106,7 @@ export class GitService implements IGitService {
                     isDeleted: file.index === 'D',
                 }));
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : '알 수 없는 Git 오류';
+            const errorMessage = error instanceof Error ? error.message : 'Unknown Git error';
             throw new GitError(errorMessage);
         }
     }
@@ -127,7 +127,7 @@ export class GitService implements IGitService {
             return Array.from(allModifiedMap.values());
            
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : '알 수 없는 Git 오류';
+            const errorMessage = error instanceof Error ? error.message : 'Unknown Git error';
             throw new GitError(errorMessage);
         }
     }
@@ -143,7 +143,7 @@ export class GitService implements IGitService {
         try {
             await this.git.add(files);
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : '알 수 없는 Git 오류';
+            const errorMessage = error instanceof Error ? error.message : 'Unknown Git error';
             throw new GitError(errorMessage);
         }
     }
@@ -158,7 +158,7 @@ export class GitService implements IGitService {
         try {
             await this.git.reset(['HEAD', '--', ...files])
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : '알 수 없는 Git 오류';
+            const errorMessage = error instanceof Error ? error.message : 'Unknown Git error';
             throw new GitError(errorMessage);
         }
     }
@@ -170,7 +170,7 @@ export class GitService implements IGitService {
             const diff = await this.git.diff(['--cached', '--text']);
             return diff;
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : '알 수 없는 Git 오류';
+            const errorMessage = error instanceof Error ? error.message : 'Unknown Git error';
             throw new GitError(errorMessage);
         }
     }
@@ -180,7 +180,7 @@ export class GitService implements IGitService {
         try {
             await this.git.add('.');
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : '알 수 없는 Git 오류';
+            const errorMessage = error instanceof Error ? error.message : 'Unknown Git error';
             throw new GitError(errorMessage);
         }
     }
@@ -196,13 +196,13 @@ export class GitService implements IGitService {
         }catch (error) {
             if(error instanceof GitError) throw error;
 
-            const errorMessage = error instanceof Error ? error.message : '알 수 없는 Git 오류';
+            const errorMessage = error instanceof Error ? error.message : 'Unknown Git error';
 
             if (errorMessage.includes('CONFLICT') || 
                 errorMessage.includes('merge failed') || 
                 errorMessage.includes('Automatic merge failed')) {
 
-                throw new GitError(`Git Pull 중 **병합 충돌** 발생: 충돌 파일을 수동으로 해결해야 합니다.`);
+                throw new GitError(`Merge conflict occurred during Git pull: You must resolve the conflicting files manually.`);
             }
     
             throw new GitError(errorMessage);
@@ -214,7 +214,7 @@ export class GitService implements IGitService {
         try {
             await this.git.commit(message);
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : '알 수 없는 Git 오류';
+            const errorMessage = error instanceof Error ? error.message : 'Unknown Git error';
             throw new GitError(errorMessage);
         }
     }
@@ -227,7 +227,7 @@ export class GitService implements IGitService {
             const pushArgs: string[] = ['push', '--set-upstream', remote, branchName];
             await this.git.raw(pushArgs);
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : '알 수 없는 Git 오류';
+            const errorMessage = error instanceof Error ? error.message : 'Unknown Git error';
             throw new GitError(errorMessage);
         }
     }
@@ -238,7 +238,7 @@ export class GitService implements IGitService {
             const result = await this.git.raw(['merge', sourceBranch]);
             return result.trim();
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : '알 수 없는 Git 오류';
+            const errorMessage = error instanceof Error ? error.message : 'Unknown Git error';
             throw new GitError(errorMessage);
         }
     }
@@ -248,11 +248,11 @@ export class GitService implements IGitService {
         try {
             await this.git.branch(['-d', branchName]);
         }catch(error) {
-            const errorMessage = error instanceof Error ? error.message : '알 수 없는 Git 오류';
+            const errorMessage = error instanceof Error ? error.message : 'Unknown Git error';
             
             // 병합되지 않은 커밋이 있을 경우 오류 메시지를 사용자에게 명확히 전달합니다.
             if (errorMessage.includes('not fully merged')) {
-                throw new GitError(`❌ 브랜치 삭제 실패: '${branchName}'에는 아직 병합되지 않은 커밋이 있습니다.`);
+                throw new GitError(`❌ Branch deletion failed: '${branchName}' has unmerged commits.`);
             }
             
             throw new GitError(errorMessage);
@@ -264,7 +264,7 @@ export class GitService implements IGitService {
         try {
             await this.git.fetch(['--prune']);
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : '알 수 없는 Git 오류';
+            const errorMessage = error instanceof Error ? error.message : 'Unknown Git error';
             throw new GitError(errorMessage);
         }
     }
@@ -274,7 +274,7 @@ export class GitService implements IGitService {
             const args = message ? ['tag', '-a', tagName, '-m', message] : ['tag', tagName];
             await this.git.raw(args);
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : '알 수 없는 Git 오류';
+            const errorMessage = error instanceof Error ? error.message : 'Unknown Git error';
             throw new GitError(errorMessage);
         }
     }

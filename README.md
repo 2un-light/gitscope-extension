@@ -1,132 +1,153 @@
 # 🚀 GitScope — AI-Powered Git Workflow for VS Code  
 Your Git process, simplified and accelerated by AI.
 
-**GitScope**는 VS Code 안에서 Git 작업을 더 빠르고, 안전하고, 똑똑하게 수행할 수 있도록 설계된 AI 기반 Git 확장입니다.  
-Gemini를 활용해 **브랜치명 추천**, **커밋 메시지 생성**, **간편한 Git 명령 실행**을 지원합니다.
+**GitScope** is an AI-powered Git extension designed to make Git operations faster, safer, and smarter within VS Code.  
+Leveraging Gemini AI, it supports **branch name recommendations**, **commit message generation**, and **simplified Git command execution**.
 
 ---
 
-# ✨ 주요 기능
+# ✨ Key Features
 
-## 🧠 1. AI 기반 Git 자동화  
-GitScope는 변경된 파일을 분석하여 깔끔한 기록을 만드는 데 필요한 AI 도구를 제공합니다.
+## 🧠 1. AI-Based Git Automation  
+GitScope provides AI tools to analyze changed files and create clean Git history.
 
 ### • 🌳 AI Branch Name Recommendation  
-- 작업 내용을 기반으로 **자동 브랜치명 추천**  
-- Git 규칙에 맞는 일관된 네이밍 패턴 유지
-<img src="./images/demo_recommand_branch.gif" alt="AI 브랜치명 추천 시연" width="1000" />
+- **Automatic branch name suggestions** based on your work  
+- Maintains consistent naming patterns following Git conventions
+<img src="./images/demo_recommand_branch.gif" alt="AI Branch Name Recommendation Demo" width="1000" />
 
 ### • 🪶 AI Commit Message Generator  
-- 스테이징된 파일을 분석해 **최적의 커밋 메시지 자동 생성**  
-- 생성된 메시지는 클립보드로 자동 복사  
-- 불필요한 설명 없이 “한 번에 깔끔한 커밋” 가능  
-<img src="./images/demo_recommand_commitmessage.gif" alt="AI 커밋메시지 추천 시연" width="1000" />
-
-
----
-
-## 🔄 2. 단순하고 직관적인 Git 명령  
-GitScope는 복잡한 Git 명령을 누르기 쉬운 VS Code Command Palette 명령으로 제공합니다.
-
-| GitScope 명령 | Git 명령 | 설명 |
-|--------------|----------|------|
-| **🧭 GitScope Navigator 열기** | - | 브랜치 전략별 워크플로우 UI |
-| **🔗 Clone Remote Repository** | `git clone` | 원격 저장소 클론 |
-| **📥 Pull Changes** | `git pull` | 최신 변경 사항 가져오기 |
-| **➕ Stage All Changes** | `git add .` | 전체 변경 사항 스테이징 |
-| **🪶 Generate Commit Message** | - | AI 커밋 메시지 생성 |
-| **🚀 Commit Changes** | `git commit` | 변경 사항 커밋 |
-| **☁️ Push to Remote** | `git push` | 변경 사항 푸시 |
-| **🌳 Create Branch** | `git branch` | 새 브랜치 생성 |
-| **🔄 Switch Branch** | `git checkout` | 브랜치 전환 |
-| **➡️ Merge Branch** | `git merge` | 브랜치 병합 |
-| **🗑️ Delete Local Branch** | `git branch -d` | 로컬 브랜치 삭제 |
+- Analyzes staged files to **automatically generate optimal commit messages**  
+- Generated messages are automatically copied to clipboard  
+- Enables "clean commits in one go" without unnecessary descriptions  
+<img src="./images/demo_recommand_commitmessage.gif" alt="AI Commit Message Recommendation Demo" width="1000" />
 
 ---
 
-# 🧭 GitScope 기본 사용 흐름 (3-단계 워크플로우)
+## 🔄 2. Simple and Intuitive Git Commands  
+GitScope transforms complex Git commands into easy-to-use VS Code Command Palette commands.
 
-GitScope는 초보자도 Git을 안전하게 사용하도록 **3-Step Git Flow**를 제공합니다.
-
----
-
-## 🥇 1단계 — 작업 준비 (Setup)
-
-| 순서 | 명령 | 설명 |
-|---|------|------|
-| 1 | **🔑 Gemini API Key 설정 (필수)** | AI 기능 활성화를 위한 API Key 등록 |
-| 2 | **🔗 원격 저장소 클론 (필수)** | 프로젝트 최초 클론 |
-| 3 | **📥 원격 변경 사항 Pull** | 작업 시작 전 최신 코드 동기화 |
-
----
-
-## 🥈 2단계 — 개발 및 커밋 (Development & Commit)
-
-| 순서 | 명령 | 설명 |
-|---|------|------|
-| 1 | 코드 수정 | 일반적인 개발 작업 수행 |
-| 2 | **🌳 Branch Name 추천 및 생성** | 기능 브랜치를 AI로 생성 |
-| 3 | **🔄 Branch 전환** | 생성된 브랜치로 체크아웃 |
-| 4 | **🪶 Commit Message 생성** | 변경된 파일 기반 AI 커밋 메시지 생성 |
-| 5 | **🚀 변경 사항 Commit** | 메시지 적용 후 commit 실행 |
+| GitScope Command | Git Command | Description |
+|-----------------|-------------|-------------|
+| **🧭 Open GitScope Navigator** | - | Workflow UI by branch strategy |
+| **🔭 GitScope User Guide** | - | Quick start guide and welcome message |
+| **🤖 Select Gemini Model** | - | Choose AI model for recommendations |
+| **🔑 Configure Gemini API Key** | - | Set up API key for AI features |
+| **🔗 Clone Remote Repository** | `git clone` | Clone remote repository |
+| **📥 Pull Changes** | `git pull` | Fetch latest changes |
+| **🌳 Recommend and Create Branch** | `git branch` | AI-powered branch creation |
+| **🔄 Switch Branch** | `git checkout` | Switch branch |
+| **➕ Stage All Changes** | `git add .` | Stage all changes |
+| **🪶 Generate Commit Message** | - | AI commit message generation |
+| **🚀 Commit Changes** | `git commit` | Commit changes |
+| **➡️ Merge Branch** | `git merge` | Merge branch |
+| **☁️ Push to Remote** | `git push` | Push changes |
+| **🗑️ Delete Local Branch** | `git branch -d` | Delete local branch |
+| **🏷️ Create Tag and Push** | `git tag` + `git push` | Create version tag and push |
 
 ---
 
-## 🥉 3단계 — 병합 및 공유 (Integration)
+# 🧭 GitScope Basic Workflow (3-Step Git Flow)
 
-| 순서 | 명령 | 설명 |
-|---|------|------|
-| 1 | **🔄 Branch 전환** | 병합 대상 브랜치로 이동 |
-| 2 | **📥 Pull** | 병합 충돌 예방을 위한 최신화 |
-| 3 | **➡️ Merge 실행** | 작업 브랜치를 대상 브랜치로 병합 |
-| 4 | **☁️ Push** | 병합된 내용 원격 저장소로 푸시 |
-| 5 | **🗑️ Local Branch 삭제** | 작업 끝난 브랜치 정리 |
+GitScope provides a **3-Step Git Flow** to help beginners use Git safely.
+
+---
+
+## 🥇 Step 1 — Setup
+
+| Order | Command | Description |
+|-------|---------|-------------|
+| 1 | **🔭 GitScope User Guide** | View welcome message and quick start guide |
+| 2 | **🔑 Configure Gemini API Key (Required)** | Register API Key to activate AI features |
+| 3 | **🤖 Select Gemini Model** | Choose AI model (optional, default model provided) |
+| 4 | **🔗 Clone Remote Repository (Required)** | Initial project clone |
+| 5 | **📥 Pull Remote Changes** | Sync latest code before starting work |
+
+---
+
+## 🥈 Step 2 — Development & Commit
+
+| Order | Command | Description |
+|-------|---------|-------------|
+| 1 | Code Modification | Perform regular development work |
+| 2 | **🌳 Recommend and Create Branch** | Create feature branch with AI |
+| 3 | **🔄 Switch Branch** | Checkout to created branch |
+| 4 | **➕ Stage All Changes** | Stage all modified files |
+| 5 | **🪶 Generate Commit Message** | Generate AI commit message based on changed files |
+| 6 | **🚀 Commit Changes** | Execute commit with applied message |
+
+---
+
+## 🥉 Step 3 — Integration
+
+| Order | Command | Description |
+|-------|---------|-------------|
+| 1 | **🔄 Switch Branch** | Move to target branch for merge |
+| 2 | **📥 Pull** | Update to prevent merge conflicts |
+| 3 | **➡️ Merge Branch** | Merge work branch into target branch |
+| 4 | **☁️ Push to Remote** | Push merged content to remote repository |
+| 5 | **🗑️ Delete Local Branch** | Clean up finished work branch |
+| 6 | **🏷️ Create Tag and Push** | Create version tag (optional, for releases) |
 
 ---
 
 ## 🧭 GitScope Navigator
-잡한 Git 브랜치 전략도 버튼 클릭으로 간단하게!
-GitScope Navigator는 프로젝트 규모와 팀 구성에 맞는 **4가지 브랜치 전략**을 시각적 UI로 제공합니다.
+Complex Git branching strategies made simple with button clicks!
+GitScope Navigator provides **4 branching strategies** through a visual UI, tailored to your project scale and team size.
 
-## 지원하는 브랜치 전략
-- **Single-Branch** — 1인 개발
-- **GitHub-Flow** — 2인~5인, 단순함
-- **GitLab-Flow** — 5인 ~ 20인, 직관적, 테스트 브랜치
-- **Git-Flow** — 대규모, 여러 버전 운영
+## Supported Branching Strategies
+- **Single-Branch** — Solo development
+- **GitHub-Flow** — 2-5 developers, simple
+- **GitLab-Flow** — 5-20 developers, intuitive, test branches
+- **Git-Flow** — Large scale, multiple version management
 
-## 사용법
-1. Command Palette → `Git Scope: 🧭 GitScope Navigator 열기`
-2. 프로젝트에 맞는 브랜치 전략 선택
-3. 제공되는 버튼으로 Git 명령 실행
+## How to Use
+1. Command Palette → `GitScope: 🧭 Open GitScope Navigator`
+2. Select a branching strategy that fits your project
+3. Execute Git commands using provided buttons
 
-각 전략에 맞는 Git 명령을 **단계별 버튼**으로 제공하여 초보자도 쉽게 따라할 수 있습니다.
-
----
-
-# ⚙️ 설치 및 설정
-
-### 1. GitScope 설치  
-VS Code Extensions Marketplace에서 **"GitScope"** 검색 후 설치.
-
-### 2. AI Key 설정  
-Command Palette (`Ctrl + Shift + P`) 또는 F1 →  
-`🔑 [CONFIG] Gemini API Key 설정 (필수)` 실행 후 Key 등록.
-
-### 3. 시작  
-Command Palette에서 **"Git Scope"**를 검색하면 모든 명령을 확인할 수 있습니다.
+Each strategy provides Git commands as **step-by-step buttons**, making it easy for beginners to follow.
 
 ---
 
-# 🔒 보안 및 비용 안내
+# ⚙️ Installation and Setup
 
-- API Key는 **VS Code SecretStorage**에 안전하게 암호화 저장됩니다.  
-- 모든 AI 요청은 사용자의 **Gemini API Key**로 이루어지며, 비용은 사용자가 부담합니다.  
-- GitScope는 API Key를 외부 서버로 전송하지 않습니다.
+### 1. Install GitScope  
+Search for **"GitScope"** in VS Code Extensions Marketplace and install.
+
+### 2. View User Guide (Recommended)
+Command Palette (`Ctrl + Shift + P` or `Cmd + Shift + P` on Mac) →  
+Run `🔭 GitScope User Guide` to see welcome message and quick start instructions.
+
+### 3. Configure AI Key  
+Command Palette →  
+Run `🔑 Configure Gemini API Key (Required)` and register your key.
+
+### 4. Select AI Model (Optional)
+Command Palette →  
+Run `🤖 Select Gemini Model` to choose your preferred AI model.  
+(Default model is already set if skipped)
+
+### 5. Change Language (Optional)
+Press `Ctrl + ,` (or `Cmd + ,` on Mac) to open Settings →  
+Search for **"gitscope"** →  
+Select your preferred language (Korean/English) from the **Language** dropdown.
+
+### 6. Get Started  
+Search for **"GitScope"** in Command Palette to see all available commands.
 
 ---
 
-# 📘 GitScope 공식 문서  
-더 자세한 가이드와 예시는 다음 공식 매뉴얼에서 확인하세요:
+# 🔒 Security and Cost Information
 
-👉 **GitScope Extension 공식 매뉴얼**  
+- API Keys are securely encrypted and stored in **VS Code SecretStorage**.  
+- All AI requests are made using your **Gemini API Key**, and costs are borne by you.  
+- GitScope does not transmit API Keys to external servers.
+
+---
+
+# 📘 GitScope Official Documentation  
+For more detailed guides and examples, check out our official manual:
+
+👉 **GitScope Extension Official Manual**  
 https://sparkling-0902.notion.site/GitScope-Extension-2af6a40f9fff804da616e999e8527349

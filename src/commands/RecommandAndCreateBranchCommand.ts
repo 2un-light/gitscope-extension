@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import { ERROR_MESSAGES } from '../errors/errorMessages';
 import { clearLastStagedFiles, getLastStagedFiles, saveLastStagedFiles } from '../utils/fileUtils';
 import { IGitService } from '../interfaces/IGitService';
 import { IGeminiService } from '../interfaces/IGeminiService';
@@ -8,44 +7,41 @@ import { IUserInteraction } from '../interfaces/IUserInteraction';
 import { ModifiedFileQuickPickItem } from '../interfaces/IModifiedFileQuickPickItem';
 import { GitFileStatus } from '../types/gitTypes';
 import { ShowNavigator } from './ShowNavigator';
+import { II18nProvider } from '../interfaces/II18nProvider';
 
 const MODE_MANUAL = 'manualMode';
 const MODE_GEMINI = 'geminiMode';
 
 export class ExecuteRecommandAndCreateBranchCommand implements ICommand {
-    private context: vscode.ExtensionContext;
-    private git: IGitService;
-    private gemini: IGeminiService;
-    private ui: IUserInteraction;
 
-    constructor(context: vscode.ExtensionContext, git: IGitService, gemini: IGeminiService, uiService: IUserInteraction) {
-        this.context = context;
-        this.git = git;
-        this.gemini = gemini;
-        this.ui = uiService;
-    }
+    constructor(
+        private context: vscode.ExtensionContext,
+        private git: IGitService,
+        private gemini: IGeminiService,
+        private ui: IUserInteraction,
+        private i18n: II18nProvider
+    ) {}
     
-
-    //이전 스테이징 파일 언스테징하고 정리
-    private async cleanUpPreviousStaging(): Promise<void> {
+    // 이전 스테이징 파일 언스테징하고 정리
+    private async cleanUpPreviousStaging(t: ReturnType<II18nProvider['t']>): Promise<void> {
         const lastFiles = await getLastStagedFiles(this.context);
 
         if(lastFiles.length > 0) {
-            this.ui.output('🧹 **정리 작업:** 이전에 선택된 파일 작업 디렉토리로 되돌리는 중...');
+            this.ui.output(t.messages.cleanupPreviousStaging);
             try {
                 await this.git.unstageSelectedFiles(lastFiles);
                 await clearLastStagedFiles(this.context);
-                this.ui.output('✅ 정리 완료');
+                this.ui.output(t.messages.cleanupComplete);
             } catch (error) {
-                this.ui.output(`⚠️ 정리 중 오류 발생: ${error}`);
+                this.ui.output(t.messages.cleanupError(String(error)));
             }
         }
     }
 
-    //사용자로부터 브랜치 생성 방식 입력받기 (MODE_MANUAL | MODE_GEMINI)
-    private async promptBranchCreationMethod(): Promise<typeof MODE_MANUAL | typeof MODE_GEMINI | undefined> {
-        const manualOption = '✨ 새로운 브랜치 이름 수동 입력';
-        const geminiRecommandOption = '🤖 Gemini AI에게 브랜치 이름 추천받기 (3가지)';
+    // 사용자로부터 브랜치 생성 방식 입력받기 (MODE_MANUAL | MODE_GEMINI)
+    private async promptBranchCreationMethod(t: ReturnType<II18nProvider['t']>): Promise<typeof MODE_MANUAL | typeof MODE_GEMINI | undefined> {
+        const manualOption = t.messages.manualBranchInput;
+        const geminiRecommandOption = t.messages.geminiBranchRecommend;
 
         const quickPickItems: vscode.QuickPickItem[] = [
             {label: manualOption},
@@ -54,52 +50,51 @@ export class ExecuteRecommandAndCreateBranchCommand implements ICommand {
 
         const selection = await this.ui.showQuickPick(
             quickPickItems,
-            { placeHolder: '브랜치 생성 방식을 선택해주세요.' }
+            { placeHolder: t.messages.selectBranchCreationMethod }
         );
 
         if(!selection) return undefined;
         return selection.label === manualOption ? MODE_MANUAL : MODE_GEMINI;
-
     }
 
-    //브랜치 이름 수동으로 입력받기
-    private async inputBranchName(): Promise<string | undefined> {
+    // 브랜치 이름 수동으로 입력받기
+    private async inputBranchName(t: ReturnType<II18nProvider['t']>): Promise<string | undefined> {
         return await this.ui.showInputBox({
-            prompt: '새로운 브랜치 이름을 입력하세요 (예: feat/my-new-feature)',
+            prompt: t.messages.inputNewBranchName,
             ignoreFocusOut: true
         });
     }
 
-    //수동 입력 핸들링, 브랜치 이름 반환
-    private handleManualMode(): Promise<string | undefined> {
-        return this.inputBranchName();
+    // 수동 입력 핸들링, 브랜치 이름 반환
+    private handleManualMode(t: ReturnType<II18nProvider['t']>): Promise<string | undefined> {
+        return this.inputBranchName(t);
     }
 
-    //브랜치명을 추천받을 파일 선택
-    private async selectFilesForBranchName(): Promise<string[] | undefined> {
-        this.ui.output('🔄 수정된 파일 목록 확인 중...');
+    // 브랜치명을 추천받을 파일 선택
+    private async selectFilesForBranchName(t: ReturnType<II18nProvider['t']>): Promise<string[] | undefined> {
+        this.ui.output(t.messages.checkingModifiedFiles);
 
         const modifiedFiles: GitFileStatus[] = await this.git.getModifiedFiles();
 
         if (modifiedFiles.length === 0) {
-            this.ui.showErrorMessage(ERROR_MESSAGES.noModifiedCode, {});
+            this.ui.showErrorMessage(t.errors.noModifiedCode, {});
             return;
         }
 
         const modifiedFilesItems: ModifiedFileQuickPickItem[] = modifiedFiles.map(files => ({
             label: files.isDeleted ? `${files.path}`: files.path,
-            description: files.isDeleted ? '⚠️ 수정 혹은 삭제됨 • 현재 디렉토리에 없음': '',
+            description: files.isDeleted ? t.messages.deletedFileDescription : '',
             isDeleted: files.isDeleted,
             path: files.path,
         }));
 
         const selected = await this.ui.selectFilesQuickPick(
             modifiedFilesItems,
-            "브랜치명을 추천받을 파일을 선택하세요 (복수 선택 가능)"
+            t.messages.selectFilesForBranchName
         );
 
         if (selected === undefined) {
-            this.ui.output('❌ 파일 선택이 취소되었습니다.');
+            this.ui.output(t.messages.cancelled);
             return undefined;
         }
 
@@ -108,115 +103,113 @@ export class ExecuteRecommandAndCreateBranchCommand implements ICommand {
         return selectedFiles;
     }
 
-    //Gemini 로부터 브랜치명 추천받기
-    private async getRecommandedBranchNames(selectedFiles: string[]): Promise<string[] | undefined> {
-        this.ui.output(`✅ **${selectedFiles.length}개 파일** 선택 완료.`);
+    // Gemini 로부터 브랜치명 추천받기
+    private async getRecommandedBranchNames(selectedFiles: string[], t: ReturnType<II18nProvider['t']>): Promise<string[] | undefined> {
+        this.ui.output(t.messages.filesSelectedCount(selectedFiles.length));
         
-        this.ui.output('🔄 선택된 파일을 **스테이징** 중...');
+        this.ui.output(t.messages.stagingSelectedFiles);
         await this.git.stageSelectedFiles(selectedFiles);
-        this.ui.output('✅ 스테이징 완료.');
+        this.ui.output(t.messages.stagingComplete);
 
-        this.ui.output('💾 현재 작업 범위 저장');
+        this.ui.output(t.messages.savingWorkScope);
         await saveLastStagedFiles(this.context, selectedFiles);
-        this.ui.output('✅ 저장 완료.');
+        this.ui.output(t.messages.saveComplete);
 
-
-        this.ui.output('🔄 Git diff 수집 중...');
+        this.ui.output(t.messages.collectingGitDiff);
         const diff = await this.git.getGitDiff();
 
         if(!diff.trim()) {
-            this.ui.showErrorMessage(ERROR_MESSAGES.emptyDiff, {});
+            this.ui.showErrorMessage(t.errors.emptyDiff, {});
             return;
         }
         
-        //브랜치명 추천받기
-        this.ui.output('🔄 Gemini가 열심히 브랜치명을 생각 중...');
-        const recommandedNames = await this.gemini.generateBranchNames(diff, 3);
+        // 브랜치명 추천받기
+        this.ui.output(t.messages.geminiThinkingBranchName);
+        const recommandedNames = await this.gemini.generateBranchNames(diff, 3, t);
 
         return recommandedNames;
     }
 
-    //Gemini 추천 모드 핸들링
-    private async handleGeminiMode(): Promise<string | undefined> {
+    // Gemini 추천 모드 핸들링
+    private async handleGeminiMode(t: ReturnType<II18nProvider['t']>): Promise<string | undefined> {
         let selectedFiles: string[] = [];
         let branchName: string | undefined;
 
         try {
-            selectedFiles = await this.selectFilesForBranchName() ?? [];
+            selectedFiles = await this.selectFilesForBranchName(t) ?? [];
             if(selectedFiles.length === 0) return undefined;
 
-            const recommandedNames = await this.getRecommandedBranchNames(selectedFiles);
+            const recommandedNames = await this.getRecommandedBranchNames(selectedFiles, t);
 
             if(!recommandedNames || recommandedNames.length === 0) {
-                this.ui.showErrorMessage(ERROR_MESSAGES.geminiBranchRecommandationFailed, {});
-                branchName = await this.inputBranchName();
-            }else {
-                branchName = await this.selectRecommandBranchName(recommandedNames);
+                this.ui.showErrorMessage(t.errors.geminiBranchRecommandationFailed, {});
+                branchName = await this.inputBranchName(t);
+            } else {
+                branchName = await this.selectRecommandBranchName(recommandedNames, t);
             }
 
             return branchName;
 
         } catch (error) {
-            this.ui.output(`⚠️ Gemini 모드 실행 중 오류 발생: ${error instanceof Error ? error.message : String(error)}`);
-            this.ui.showErrorMessage(ERROR_MESSAGES.recommendationFailed, {});
+            this.ui.output(t.messages.geminiModeError(error instanceof Error ? error.message : String(error)));
+            this.ui.showErrorMessage(t.errors.recommendationFailed, {});
             return undefined;
         }
-
     }
 
-    //추천 이름 목록 제시, 선택받기
-    private async selectRecommandBranchName(recommandedNames: string[]): Promise<string | undefined> {
+    // 추천 이름 목록 제시, 선택받기
+    private async selectRecommandBranchName(recommandedNames: string[], t: ReturnType<II18nProvider['t']>): Promise<string | undefined> {
         const quickPickItems: vscode.QuickPickItem[] = recommandedNames.map(name => ({
-            label: `🤖 추천: ${name}`,
+            label: t.messages.recommendedBranchLabel(name),
             description: name
         }));
 
         const recommandedSelection = await this.ui.showQuickPick(
             quickPickItems,
             {
-                placeHolder: '추천 브랜치 이름 중 하나를 선택해주세요!'
+                placeHolder: t.messages.selectRecommendedBranch
             }
         );
 
         if(!recommandedSelection) {
-            this.ui.output('❌ 추천 브랜치 선택이 취소되었습니다.');
+            this.ui.output(t.messages.cancelled);
             return undefined;
         }
 
         return recommandedSelection.description;
-
     }
 
-    //브랜치 생성
-    private async createBranch(branchName: string): Promise<void> {
-        this.ui.output(`🔄 브랜치 생성 중: ${branchName}`);
+    // 브랜치 생성
+    private async createBranch(branchName: string, t: ReturnType<II18nProvider['t']>): Promise<void> {
+        this.ui.output(t.messages.creatingBranch(branchName));
         await this.git.createBranch(branchName);
-        this.ui.output(`✅ 브랜치 **${branchName}** 생성이 완료되었습니다.`);
+        this.ui.output(t.messages.branchCreated(branchName));
     }
 
-    //사용자에게 브랜치 전환 여부 묻고 전환
-    private async promptAndCheckout(branchName: string): Promise<void> {
-        const switchOption = '전환합니다';
+    // 사용자에게 브랜치 전환 여부 묻고 전환
+    private async promptAndCheckout(branchName: string, t: ReturnType<II18nProvider['t']>): Promise<void> {
+        const switchOption = t.messages.switchBranchButton;
         const confirmation = await this.ui.showInformationMessage(
-            `새로 생성된 브랜치 ${branchName}로 바로 전환하시겠습니까?`,
+            t.messages.switchToNewBranchConfirm(branchName),
             {modal: true},
             switchOption,
         );
 
         if(confirmation === switchOption) {
-            this.ui.output(`🔄 **${branchName}** 브랜치로 전환 중...`);
+            this.ui.output(t.messages.switchingToBranch(branchName));
             await this.git.checkout(branchName);
-            this.ui.output(`✅ **${branchName}** 브랜치로 전환이 완료되었습니다.`);
-        }else {
-            this.ui.output(`ℹ️ 브랜치 전환을 취소했습니다. 현재 브랜치를 유지합니다.`);
+            this.ui.output(t.messages.branchSwitchComplete(branchName));
+        } else {
+            this.ui.output(t.messages.switchCancelled);
         }
-            
     }
 
-    //실행 함수
+    // 실행 함수
     public async execute(buttonId?: string): Promise<void> {
+        const t = this.i18n.t();
+        
         this.ui.clearOutput();
-        this.ui.output('🌳 Git 브랜치명 추천 시작');
+        this.ui.output(t.messages.branchRecommendStart);
 
         const activePanel = ShowNavigator.activePanel;
     
@@ -224,47 +217,45 @@ export class ExecuteRecommandAndCreateBranchCommand implements ICommand {
 
         try {
             
-            //이전 스테이징 정리
-            await this.cleanUpPreviousStaging();
+            // 이전 스테이징 정리
+            await this.cleanUpPreviousStaging(t);
 
-            //모드 선택
-            const mode = await this.promptBranchCreationMethod();
+            // 모드 선택
+            const mode = await this.promptBranchCreationMethod(t);
             if (!mode) {
-                this.ui.output('❌ 브랜치 생성 방식 선택이 취소되었습니다.');
+                this.ui.output(t.messages.cancelled);
                 return;
             }
 
-            //모드별 브랜치 이름 입력받기
+            // 모드별 브랜치 이름 입력받기
             if(mode === MODE_MANUAL) {
-                branchName = await this.handleManualMode();
-            }else {
-                branchName = await this.handleGeminiMode();
+                branchName = await this.handleManualMode(t);
+            } else {
+                branchName = await this.handleGeminiMode(t);
             }
 
             if(!branchName) {
-                this.ui.output('❌ 유효한 브랜치 이름을 입력받지 못해, 명령을 종료합니다.');
+                this.ui.output(t.messages.invalidBranchNameExit);
                 return;
             }
 
-            //브랜치 생성 및 전환
-            await this.createBranch(branchName);
-            await this.promptAndCheckout(branchName);
+            // 브랜치 생성 및 전환
+            await this.createBranch(branchName, t);
+            await this.promptAndCheckout(branchName, t);
             
-
             activePanel?.webview.postMessage({
                 type: 'commandSuccess',
                 buttonId: buttonId,
                 commandId: 'createBranch'
             });
 
-
         } catch (error) {
-            this.ui.showErrorMessage(ERROR_MESSAGES.createBranchFailed, {});
+            this.ui.showErrorMessage(t.errors.createBranchFailed, {});
 
             const detailedMessage = error instanceof Error ? error.stack || error.message : String(error);
             this.ui.output(`⚠️ Create Branch Error: ${detailedMessage}`);
 
-            branchName = await this.inputBranchName();
+            branchName = await this.inputBranchName(t);
             if (!branchName) return;
 
             activePanel?.webview.postMessage({
@@ -273,7 +264,6 @@ export class ExecuteRecommandAndCreateBranchCommand implements ICommand {
                 commandId: 'createBranch',
                 error: detailedMessage
             });
-
         }
     }
 }

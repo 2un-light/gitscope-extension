@@ -1,0 +1,17 @@
+{
+    "command.showNavigator": "GitScope: 🧭 GitScope Navigator 열기",
+    "command.welcome": "GitScope: 🔭 [WELCOME] Git Scope 사용 안내",
+    "command.selectGeminiModel": "GitScope: 🤖 [CONFIG] Gemini 모델 선택",
+    "command.configApiKey": "GitScope: 🔑 [CONFIG] Gemini API Key 설정 (필수)",
+    "command.clone": "GitScope: 🔗 [CLONE] 원격 저장소 클론 (필수)",
+    "command.pull": "GitScope: 📥 [PULL] 원격 변경 사항 Pull",
+    "command.createBranch": "GitScope: 🌳 [BRANCH] Branch명 추천 및 생성",
+    "command.checkoutBranch": "GitScope: 🔄 [BRANCH] Branch 전환",
+    "command.stageAll": "GitScope: ➕ [STAGE] 모든 변경 사항 스테이징",
+    "command.generateCommit": "GitScope: 🪶 [COMMIT] Commit Message 생성",
+    "command.commit": "GitScope: 🚀 [COMMIT] 변경 사항 Commit",
+    "command.merge": "GitScope: ➡️ [MERGE] Merge 실행",
+    "command.push": "GitScope: ☁️ [PUSH] 원격 저장소로 Push",
+    "command.deleteBranch": "GitScope: 🗑️ [BRANCH] Local Branch 삭제",
+    "command.createTag": "GitScope: 🏷️ [TAG] 태그 생성 및 Push"
+}

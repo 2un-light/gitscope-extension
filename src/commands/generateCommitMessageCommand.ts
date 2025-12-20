@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import { ERROR_MESSAGES } from '../errors/errorMessages';
 import { saveLastStagedFiles } from '../utils/fileUtils';
 import { IGitService } from '../interfaces/IGitService';
 import { IGeminiService } from '../interfaces/IGeminiService';
@@ -8,25 +7,24 @@ import { IUserInteraction } from '../interfaces/IUserInteraction';
 import { ModifiedFileQuickPickItem } from '../interfaces/IModifiedFileQuickPickItem';
 import { GitFileStatus } from '../types/gitTypes';
 import { ShowNavigator } from './ShowNavigator';
+import { II18nProvider } from '../interfaces/II18nProvider';
 
 export class GenerateCommitMessageCommand implements ICommand {
-    private context: vscode.ExtensionContext;
-    private git: IGitService;
-    private gemini: IGeminiService;
-    private ui: IUserInteraction;
-
-    constructor(context: vscode.ExtensionContext, git: IGitService, gemini: IGeminiService, uiService: IUserInteraction) {
-        this.context = context;
-        this.git = git;
-        this.gemini = gemini;
-        this.ui = uiService;
-    }
+    
+    constructor(
+        private context: vscode.ExtensionContext,
+        private git: IGitService,
+        private gemini: IGeminiService,
+        private ui: IUserInteraction,
+        private i18n: II18nProvider
+    ) {}
 
     //QuickPick 생성 - 스테이징된 파일 재사용 여부 묻기
-    private prepareReuseConfirmationItems(lastStagedFiles: string[]): {items: vscode.QuickPickItem[], savedMessageLabel: string} {
-        const savedMessageLabel = `✅ 이전에 스테이징 한 ${lastStagedFiles.length}개 파일로 진행   (${lastStagedFiles.join(", ")})`;
-        const freshSelect = '🔄 새로 파일 선택';
-        const cancel = '❌ 취소';
+    private prepareReuseConfirmationItems(lastStagedFiles: string[], t: ReturnType<II18nProvider['t']>): {items: vscode.QuickPickItem[], savedMessageLabel: string} {
+        const savedMessageLabel = t.messages.reuseLabel(lastStagedFiles.length, lastStagedFiles);
+        
+        const freshSelect = t.messages.reuseFresh;
+        const cancel = t.messages.cancelButton;
 
         const items: vscode.QuickPickItem[] = [
             {label: savedMessageLabel},
@@ -39,17 +37,17 @@ export class GenerateCommitMessageCommand implements ICommand {
 
     //파일 선택 방식 입력(재사용 or 새로 선택)
     //최종 파일 목록 반환, 취소시 undefined 반환
-    private async promptForFileSelection(lastStagedFiles: GitFileStatus[]): Promise<boolean> {
+    private async promptForFileSelection(lastStagedFiles: GitFileStatus[], t: ReturnType<II18nProvider['t']>): Promise<boolean> {
 
         const selectedFilesPaths = lastStagedFiles.map(f => f.path);
         
         if(selectedFilesPaths && selectedFilesPaths.length > 0) {
-            this.ui.output(`ℹ️ 스테이징된 (${selectedFilesPaths.length}개 파일)가 있습니다.`);
-            const { items, savedMessageLabel } = this.prepareReuseConfirmationItems(selectedFilesPaths);
+            this.ui.output(t.messages.stagedFilesInfo(selectedFilesPaths.length));
+            const { items, savedMessageLabel } = this.prepareReuseConfirmationItems(selectedFilesPaths, t);
 
             const confirmation = await this.ui.showQuickPick(items, {
-                    title: '이전에 스테이징 한 파일로 진행하시겠습니까?',
-                    placeHolder: '선택하세요',
+                    title: t.messages.reuseConfirmTitle,
+                    placeHolder: t.messages.reuseConfirmPlaceholder,
                     ignoreFocusOut: true
                 }
             );
@@ -57,57 +55,59 @@ export class GenerateCommitMessageCommand implements ICommand {
             if(confirmation?.label === savedMessageLabel) {
                 //스테이징된 파일 저장하기
                 await saveLastStagedFiles(this.context, selectedFilesPaths);
-                this.ui.output(`✅ 기존 **${selectedFilesPaths.length}개 파일**로 진행합니다.`);
+                this.ui.output(t.messages.reuseSaved(selectedFilesPaths.length));
                 return true;
-            }else if(confirmation?.label === '❌ 취소' || confirmation === undefined) {
-                this.ui.output('❌ 작업이 취소되었습니다.');
+            }else if(confirmation?.label === t.messages.cancelButton || confirmation === undefined) {
+                this.ui.output(t.messages.cancelled);
                 return false;
             }
             
         }
 
         //파일 선택하기
-        this.ui.output('🔄 수정된 파일 목록 확인 중...');
+        this.ui.output(t.messages.checkingModifiedFiles);
         await this.git.unstageSelectedFiles(selectedFilesPaths);
         const modifiedFiles = await this.git.getModifiedFiles();
 
         if (modifiedFiles.length === 0) {
-            this.ui.showErrorMessage(ERROR_MESSAGES.noModifiedCode, {});
+            this.ui.showErrorMessage(t.errors.noModifiedCode, {});
         }
 
         const modifiedFilesItems: ModifiedFileQuickPickItem[] = modifiedFiles.map(files => ({
             label: files.isDeleted ? `${files.path}`: files.path,
-            description: files.isDeleted ? '⚠️ 수정 혹은 삭제됨 • 현재 디렉토리에 없음': '',
+            description: files.isDeleted ? t.messages.deletedFileDescription : '',
             isDeleted: files.isDeleted,
             path: files.path,
         }));
 
         const selected = await this.ui.selectFilesQuickPick(
             modifiedFilesItems,
-            "커밋 메시지를 추천받을 파일을 선택하세요 (복수 선택 가능)"
+            t.messages.selectingFilesTitle
         );
 
         if (selected === undefined) {
-            this.ui.output('❌ 파일 선택이 취소되었습니다.');
+            this.ui.output(t.messages.cancelled);
             return false;
         }
 
         const selectedNewFilesPaths = selected.map(f => f.path);
 
-        this.ui.output('🔄 선택된 파일을 **스테이징** 중...');
+        this.ui.output(t.messages.stagingSelectedFiles);
         await this.git.stageSelectedFiles(selectedNewFilesPaths);
-        this.ui.output('✅ 스테이징 완료.');
+        this.ui.output(t.messages.stagingComplete);
 
         await saveLastStagedFiles(this.context, selectedNewFilesPaths);
-        this.ui.output(`✅ **${selectedNewFilesPaths.length}개 파일** 선택 및 스테이징 완료.`);
+                this.ui.output(t.messages.stagingSummary(selectedNewFilesPaths.length));
         return true;
             
     }
 
 
     public async execute(buttonId?: string): Promise<void> {
+        const t = this.i18n.t();
+
         this.ui.clearOutput();
-        this.ui.output('🪶 커밋 메시지 추천 시작');
+        this.ui.output(t.messages.generateCommitMsgStart);
 
         const activePanel = ShowNavigator.activePanel;
 
@@ -117,7 +117,7 @@ export class GenerateCommitMessageCommand implements ICommand {
             const stagedFiles = await this.git.getStagedFiles();
             
             // 2. 파일 선택 및 범위 결정
-            const selection = await this.promptForFileSelection(stagedFiles);
+            const selection = await this.promptForFileSelection(stagedFiles, t);
             if(!selection) {
                 return;
             }
@@ -127,18 +127,18 @@ export class GenerateCommitMessageCommand implements ICommand {
             const currentBranch = await this.git.getCurrentBranchName();
 
             //4. Gemini에게 commit message 추천 요청
-            this.ui.output('🤖 Gemini에게 commit message 추천 받는 중...');
-            const message = await this.gemini.generateCommitMessage(diff, currentBranch);
+            this.ui.output(t.messages.requestGemini);
+            const message = await this.gemini.generateCommitMessage(diff, currentBranch, t);
 
             //5. 추천 메시지 출력 및 클립보드 복사
             this.ui.output('----------------------------');
-            this.ui.output('💡 추천 커밋 메시지:');
+            this.ui.output(t.messages.resultTitle);
             this.ui.output(`"${message}"`);
 
             this.ui.output('----------------------------');
             await this.ui.writeClipboard(message);
-            this.ui.output('📋 클립보드에 복사 완료!');
-            this.ui.output('🚀 커밋을 실행하려면 명령 팔레트에서 "GitScope: 🚀 [COMMIT] 변경 사항 Commit"를 실행하세요.');
+            this.ui.output(t.messages.clipboardCopied);
+            this.ui.output(t.messages.nextStepGuide);
 
             activePanel?.webview.postMessage({
                 type: 'commandSuccess',
@@ -148,7 +148,7 @@ export class GenerateCommitMessageCommand implements ICommand {
 
         } catch (error) {
 
-            this.ui.showErrorMessage(ERROR_MESSAGES.generateCommitMessageFailed, {});
+            this.ui.showErrorMessage(t.errors.generateCommitMessageFailed, {});
                         
             const detailedMessage = error instanceof Error ? error.stack || error.message : String(error);
             this.ui.output(`⚠️ Recommand Commit Message Error: ${detailedMessage}`);

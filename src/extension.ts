@@ -21,13 +21,15 @@ import { ExecutePushCommand } from './commands/PushCommand';
 import { ExecuteMergeCommand } from './commands/MergeCommand';
 import { ExecuteDeleteLocalBranchCommand } from './commands/DeleteLocalBranchCommand';
 
-import { GenerateCommitMessageCommand } from './commands/generateCommitMessageCommand';
 import { ShowNavigator } from './commands/ShowNavigator';
 import { ExecuteCreateTagAndPush } from './commands/CreateTagAndPush';
 import { SelectGeminiModelCommand } from './commands/SelectGeminiModelCommand';
 import { IConfigService } from './interfaces/IConfigService';
 import { ConfigService } from './service/configService';
-import { WelcomeCommand } from './commands/welcomeCommand';
+import { i18n } from './i18n/i18n';
+import { GenerateCommitMessageCommand } from './commands/GenerateCommitMessageCommand';
+import { WelcomeCommand } from './commands/WelcomeCommand';
+
 
 export function activate(context: vscode.ExtensionContext) {
 
@@ -43,7 +45,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     // 1-3. Gemini Service 주입
     const clientFactory = (apiKey: string, config: IConfigService): IGeminiClient => {
-        return new GeminiClient(apiKey, config);
+        return new GeminiClient(apiKey, config, i18n);
     };
     const geminiService: IGeminiService = new GeminiService(configService, clientFactory);
 
@@ -60,91 +62,91 @@ export function activate(context: vscode.ExtensionContext) {
         // 0. webView 커맨드
         { 
             id: 'gitScope.showGitScopeNavigator',
-            command: new ShowNavigator(context, userInteraction)
+            command: new ShowNavigator(context, userInteraction, i18n)
         },
 
         // 1. gitScope 시작 커맨드
         { 
             id: 'gitScope.startGitScope', 
-            command: new WelcomeCommand(userInteraction) 
+            command: new WelcomeCommand(userInteraction, i18n) 
         }, 
 
         // 2. API 키 설정 커맨드 (ConfigService 사용하도록 수정)
         { 
             id: 'gitScope.configGeminiAPIKey', 
-            command: new ConfigGeminiAPICommand(userInteraction, configService) 
+            command: new ConfigGeminiAPICommand(userInteraction, configService, i18n) 
         },
 
         // 2-1. Gemini 모델 선택 커맨드 (새로 추가)
         { 
             id: 'gitScope.selectGeminiModel', 
-            command: new SelectGeminiModelCommand(userInteraction, configService) 
+            command: new SelectGeminiModelCommand(userInteraction, configService, i18n) 
         },
 
         // 3. git Clone 커맨드
         { 
             id: 'gitScope.executeCloneCommand', 
-            command: new ExecuteCloneCommand(gitService, userInteraction) 
+            command: new ExecuteCloneCommand(gitService, userInteraction, i18n) 
         },
 
         // 4. Branch 생성 커맨드
         { 
             id: 'gitScope.executeCreateBranchCommand', 
-            command: new ExecuteRecommandAndCreateBranchCommand(context, gitService, geminiService, userInteraction) 
+            command: new ExecuteRecommandAndCreateBranchCommand(context, gitService, geminiService, userInteraction, i18n) 
         },
 
         // 5. 브랜치 checkout 커맨드
         { 
             id: 'gitScope.executeCheckoutBranchCommand', 
-            command: new ExecuteCheckoutBranchCommand(gitService, userInteraction) 
+            command: new ExecuteCheckoutBranchCommand(gitService, userInteraction, i18n) 
         },
 
         // 6. 모든 변경사항 스테이징 커맨드
         { 
             id: 'gitScope.executeStageAllCommand', 
-            command: new ExecuteStageAllCommand(gitService, userInteraction) 
+            command: new ExecuteStageAllCommand(gitService, userInteraction, i18n) 
         },
         
         // 7. commit Message 생성 커맨드 
         { 
             id: 'gitScope.generateMessage', 
-            command: new GenerateCommitMessageCommand(context, gitService, geminiService, userInteraction) 
+            command: new GenerateCommitMessageCommand(context, gitService, geminiService, userInteraction, i18n) 
         },
 
         // 8. Commit 커맨드
         { 
             id: 'gitScope.executeCommitCommand', 
-            command: new ExecuteCommitCommand(gitService, userInteraction) 
+            command: new ExecuteCommitCommand(gitService, userInteraction, i18n) 
         },
 
         // 9. Pull 커맨드
         { 
             id: 'gitScope.executePullCommand', 
-            command: new ExecutePullCommand(gitService, userInteraction) 
+            command: new ExecutePullCommand(gitService, userInteraction, i18n) 
         },
 
         // 10. Push 커맨드
         { 
             id: 'gitScope.executePushCommand', 
-            command: new ExecutePushCommand(gitService, userInteraction) 
+            command: new ExecutePushCommand(gitService, userInteraction, i18n) 
         },
 
         // 11. Merge 커맨드
         { 
             id: 'gitScope.executeMergeCommand', 
-            command: new ExecuteMergeCommand(gitService, userInteraction) 
+            command: new ExecuteMergeCommand(gitService, userInteraction, i18n) 
         },
 
         // 12. local branch 삭제 커맨드
         { 
             id: 'gitScope.executeDeleteLocalBranchCommand', 
-            command: new ExecuteDeleteLocalBranchCommand(gitService, userInteraction) 
+            command: new ExecuteDeleteLocalBranchCommand(gitService, userInteraction, i18n) 
         },
 
         // 13. Tag 생성 및 push 커맨드
         { 
             id: 'gitScope.createTagAndPushCommand', 
-            command: new ExecuteCreateTagAndPush(gitService, userInteraction) 
+            command: new ExecuteCreateTagAndPush(gitService, userInteraction, i18n) 
         },
   ];
   

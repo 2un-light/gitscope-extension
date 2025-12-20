@@ -1,16 +1,17 @@
 import axios from "axios";
 import { GeminiRequest, GeminiResponse } from "../types/geminiTypes";
 import { ApiKeyInvalidError, HttpError, QuotaError } from "../errors/Errors";
-import { ERROR_MESSAGES } from "../errors/errorMessages";
 import { IGeminiClient } from "../interfaces/IGeminiClientService";
 import { IConfigService } from "../interfaces/IConfigService";
 import { DEFAULT_MODEL, GEMINI_MODELS } from "../constants/geminiConstants";
+import { II18nProvider } from "../interfaces/II18nProvider";
 
 export class GeminiClient implements IGeminiClient {
 
     constructor(
         private apiKey: string,
         private configService: IConfigService,
+        private i18n: II18nProvider,
     ) {}
 
     /**
@@ -28,7 +29,7 @@ export class GeminiClient implements IGeminiClient {
     }
     
     async requestGeminiAPI(prompt: string): Promise<string> {
-
+        const t = this.i18n.t();
         const requestBody: GeminiRequest = {
             contents: [{ parts: [{ text: prompt }] }],
         };
@@ -53,11 +54,11 @@ export class GeminiClient implements IGeminiClient {
             if(axios.isAxiosError(error)) {
 
                 if(typeof status === "number" && [400, 401, 403].includes(status)) {
-                    throw new ApiKeyInvalidError(status, ERROR_MESSAGES.apiKeyInvalid, detail);
+                    throw new ApiKeyInvalidError(status, t.errors.apiKeyInvalid, detail);
                 }
 
                 if(status === 429) {
-                    throw new QuotaError(status, ERROR_MESSAGES.quotaExceeded, detail);
+                    throw new QuotaError(status, t.errors.quotaExceeded, detail);
                 }
 
                 throw new HttpError(status, detail);

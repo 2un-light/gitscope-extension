@@ -2,7 +2,7 @@
   "name": "gitscope",
   "displayName": "GitScope",
   "description": "AI-Powered Git Workflow Optimization Tool",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "publisher": "tomacato",
   "icon": "GitScopeIcon.png",
   "repository": {
@@ -15,102 +15,97 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [
-    "onCommand:gitScope.showGitScopeNavigator",
-    "onCommand:gitScope.startGitScope",
-    "onCommand:gitScope.configGeminiAPIKey",
-    "onCommand:gitScope.executeCloneCommand",
-    "onCommand:gitScope.executePullCommand",
-    "onCommand:gitScope.executeCreateBranchCommand",
-    "onCommand:gitScope.executeCheckoutBranchCommand",
-    "onCommand:gitScope.executeStageAllCommand",
-    "onCommand:gitScope.generateMessage",
-    "onCommand:gitScope.executeCommitCommand",
-    "onCommand:gitScope.executeMergeCommand",
-    "onCommand:gitScope.executePushCommand",
-    "onCommand:gitScope.executeDeleteLocalBranchCommand",
-    "onCommand:gitScope.createTagAndPushCommand"
-  ],
+  "activationEvents": [],
   "main": "./out/src/extension.js",
   "contributes": {
     "commands": [
-      {
+       {
         "command": "gitScope.showGitScopeNavigator",
-        "title": "GitScope: 🧭 GitScope Navigator 열기",
+        "title": "%command.showNavigator%",
         "category": "GitScope"
       },
       {
         "command": "gitScope.startGitScope",
-        "title": "GitScope: 🔭 [WELCOME] Git Scope 사용 안내",
+        "title": "%command.welcome%",
         "category": "GitScope"
       },
       {
         "command": "gitScope.selectGeminiModel",
-        "title": "GitScope: 🤖 [CONFIG] Gemini 모델 선택",
+        "title": "%command.selectGeminiModel%",
         "category": "GitScope"
       },
       {
         "command": "gitScope.configGeminiAPIKey",
-        "title": "GitScope: 🔑 [CONFIG] Gemini API Key 설정 (필수)",
+        "title": "%command.configApiKey%",
         "category": "GitScope"
       },
       {
         "command": "gitScope.executeCloneCommand",
-        "title": "GitScope: 🔗 [CLONE] 원격 저장소 클론 (필수)",
+        "title": "%command.clone%",
         "category": "GitScope"
       },
       {
         "command": "gitScope.executePullCommand",
-        "title": "GitScope: 📥 [PULL] 원격 변경 사항 Pull",
+        "title": "%command.pull%",
         "category": "GitScope"
       },
       {
         "command": "gitScope.executeCreateBranchCommand",
-        "title": "GitScope: 🌳 [BRANCH] Branch명 추천 및 생성",
+        "title": "%command.createBranch%",
         "category": "GitScope"
       },
       {
         "command": "gitScope.executeCheckoutBranchCommand",
-        "title": "GitScope: 🔄 [BRANCH] Branch 전환",
+        "title": "%command.checkoutBranch%",
         "category": "GitScope"
       },
       {
         "command": "gitScope.executeStageAllCommand",
-        "title": "GitScope: ➕ [STAGE] 모든 변경 사항 스테이징",
+        "title": "%command.stageAll%",
         "category": "GitScope"
       },
       {
         "command": "gitScope.generateMessage",
-        "title": "GitScope: 🪶 [COMMIT] Commit Message 생성",
+        "title": "%command.generateCommit%",
         "category": "GitScope"
       },
       {
         "command": "gitScope.executeCommitCommand",
-        "title": "GitScope: 🚀 [COMMIT] 변경 사항 Commit",
+        "title": "%command.commit%",
         "category": "GitScope"
       },
       {
         "command": "gitScope.executeMergeCommand",
-        "title": "GitScope: ➡️ [MERGE] Merge 실행",
+        "title": "%command.merge%",
         "category": "GitScope"
       },
       {
         "command": "gitScope.executePushCommand",
-        "title": "GitScope: ☁️ [PUSH] 원격 저장소로 Push",
+        "title": "%command.push%",
         "category": "GitScope"
       },
       {
         "command": "gitScope.executeDeleteLocalBranchCommand",
-        "title": "GitScope: 🗑️ [BRANCH] Loacl Branch 삭제",
+        "title": "%command.deleteBranch%",
         "category": "GitScope"
       },
       {
         "command": "gitScope.createTagAndPushCommand",
-        "title": "GitScope: 🏷️ [TAG] 태그 생성 및 Push",
+        "title": "%command.createTag%",
         "category": "GitScope"
       }
-
-    ]
+    ],
+    "configuration": {
+      "title": "GitScope",
+      "properties": {
+        "gitScope.language": {
+          "type": "string",
+          "enum": ["auto", "ko", "en"],
+          "default": "auto",
+          "description": "GitScope Interface Language"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
@@ -133,6 +128,8 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "@vscode/l10n": "^0.0.18",
+    "@vscode/l10n-dev": "^0.0.35",
     "axios": "^1.13.2",
     "chalk": "^5.6.2",
     "inquirer": "^12.11.0",
@@ -146,5 +143,4 @@
     "GitScopeIcon.png",
     "README.md"
   ]
-
 }

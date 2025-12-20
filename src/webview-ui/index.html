@@ -8,30 +8,29 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="${styleUri}">
 </head>
-<body onload="init()">
-
+<body>
     <h1 class="main-title">
-        🚀 GitScope Navigator
+        {{INDEX_TITLE}}
     </h1>
     <p class="main-description">
-        선택한 전략에 따라 워크플로우를 구성하고 명령어를 순서대로 실행하세요!
+        {{INDEX_DESCRIPTION}}
     </p>
 
     <div id="flow-tabs" class="tab-button-container">
         <button data-flow="common" class="tab-button">
-            필수 설정 (Common)
+            {{TAB_COMMON}}
         </button>
         <button data-flow="single" class="tab-button">
-            Single Branch
+            {{TAB_SINGLE}}
         </button>
         <button data-flow="github" class="tab-button">
-            GitHub Flow
+            {{TAB_GITHUB}}
         </button>
         <button data-flow="gitlab" class="tab-button">
-            GitLab Flow
+            {{TAB_GITLAB}}
         </button>
         <button data-flow="gitflow" class="tab-button">
-            Git Flow
+            {{TAB_GITFLOW}}
         </button>
     </div>
 
