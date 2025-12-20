@@ -1,80 +1,85 @@
-import { ERROR_MESSAGES } from '../errors/errorMessages';
 import { ICommand } from '../interfaces/ICommand';
 import { IUserInteraction } from '../interfaces/IUserInteraction';
 import { IGitService } from '../interfaces/IGitService';
 import { BranchQuickPickItem } from '../interfaces/IBranchQuickPickItem';
 import { ShowNavigator } from './ShowNavigator';
+import { II18nProvider } from '../interfaces/II18nProvider';
 
 export class ExecuteDeleteLocalBranchCommand implements ICommand {
-    private git: IGitService;
-    private ui: IUserInteraction;
-
-    constructor(gitService: IGitService, uiService: IUserInteraction) {
-        this.git = gitService;
-        this.ui = uiService;
-    }
+    
+    constructor(
+        private git: IGitService,
+        private ui: IUserInteraction,
+        private i18n: II18nProvider
+    ){}
 
     //현재 브랜치를 제외한 로컬 브랜치 목록 준비
-    private prepareDeleteableBranches(branches: string[], currentBranch: string): BranchQuickPickItem[] {
+    private prepareDeleteableBranches(
+        branches: string[], 
+        currentBranch: string,
+        t: ReturnType<II18nProvider['t']>
+    ): BranchQuickPickItem[] {
         const deleteableBranches = branches.filter(b => b !== currentBranch);
 
         return deleteableBranches.map(branch => ({
             label: `$(close) ${branch}`,
-            description: '로컬에서 이 브랜치를 삭제합니다.',
+            description: t.messages.quickPickDescription,
             branchName: branch,
         }));
     }
 
    public async execute(buttonId?: string): Promise<void> {
+    const t = this.i18n.t();
+
     this.ui.clearOutput();
-    this.ui.output('로컬 브랜치 삭제 시작');
+    this.ui.output(t.messages.deleteLocalBranchStart);
 
     const activePanel = ShowNavigator.activePanel;
 
     try {
             //현재 브랜치 확인
             const currentBranch = await this.git.getCurrentBranchName();
-            this.ui.output(`✅ 현재 브랜치: ${currentBranch}`);
+            this.ui.output(t.messages.currentBranch(currentBranch));
 
             const branches = await this.git.getLocalBranches();
 
             if(branches.length <= 1) { //main 브랜치만 있거나 다른 브랜치가 없는 경우
-                this.ui.showErrorMessage(ERROR_MESSAGES.noLocalBranchToDelete, {});
+                this.ui.showErrorMessage(t.errors.noLocalBranchToDelete, {});
                 return;
             }
 
-            const quickPickItems = this.prepareDeleteableBranches(branches, currentBranch);
+            const quickPickItems = this.prepareDeleteableBranches(branches, currentBranch, t);
 
             //사용자에게 삭제할 브랜치 선택 요청
             const selectedItem = await this.ui.showQuickPick(quickPickItems, {
-                title: '삭제할 로컬 브랜치를 선택하세요',
-                placeHolder: '브랜치 이름 검색',
+                title: t.messages.quickPickTitle,
+                placeHolder: t.messages.quickPickPlaceholder,
                 ignoreFocusOut: true,
             }) as BranchQuickPickItem | undefined;
 
             if(!selectedItem) {
-                this.ui.output('❌ 브랜치 삭제가 취소되었습니다.');
+                this.ui.output(t.messages.cancelled);
                 return;
             }
 
-            const branchDelete = selectedItem.branchName;
+            const branchName = selectedItem.branchName;
 
-            const deleteConfirm = '삭제';
+            const deleteConfirm = t.messages.deleteButton;
             const confirmResult = await this.ui.showWarningMessage(
-                `로컬 브랜치 '${branchDelete}'를 정말로 삭제하시겠습니까?\n (Merge 되지 않은 커밋은 손실될 수 있습니다)`,
+                t.messages.deleteConfirmMessage(branchName),
                 {modal: true},
                 deleteConfirm
             );
 
             if(confirmResult !== deleteConfirm) {
-                this.ui.output('❌ 브랜치 삭제가 취소되었습니다.');
+                this.ui.output(t.messages.cancelled);
                 return;
             }
 
-            this.ui.output(`🔄 로컬 브랜치 '${branchDelete}' 삭제 중...`);
-            await this.git.deleteLocalBranch(branchDelete);
+            this.ui.output(t.messages.deletingBranch(branchName));
+            await this.git.deleteLocalBranch(branchName);
 
-            this.ui.output(`🎉 로컬 브랜치 '${branchDelete}'가 성공적으로 삭제되었습니다.`);
+            this.ui.output(t.messages.deleteSuccess(branchName));
 
             activePanel?.webview.postMessage({
                 type: 'commandSuccess',
@@ -84,7 +89,7 @@ export class ExecuteDeleteLocalBranchCommand implements ICommand {
 
         } catch (error) {
 
-            this.ui.showErrorMessage(ERROR_MESSAGES.deleteBranchFailed, {});
+            this.ui.showErrorMessage(t.errors.deleteBranchFailed, {});
             
             const detailedMessage = error instanceof Error ? error.stack || error.message : String(error);
             this.ui.output(`⚠️ Branch Delete Error: ${detailedMessage}`);

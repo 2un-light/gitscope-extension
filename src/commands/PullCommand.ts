@@ -1,37 +1,35 @@
-import { ERROR_MESSAGES } from '../errors/errorMessages';
 import { IGitService } from '../interfaces/IGitService';
 import { ICommand } from '../interfaces/ICommand';
 import { IUserInteraction } from '../interfaces/IUserInteraction';
 import { ShowNavigator } from './ShowNavigator';
+import { II18nProvider } from '../interfaces/II18nProvider';
 
 export class ExecutePullCommand implements ICommand {
 
-    private git: IGitService;
-    private ui: IUserInteraction;
-
-    constructor(git: IGitService, uiService: IUserInteraction) {
-        this.git = git;
-        this.ui = uiService;
-    }
-
+    constructor(
+        private git: IGitService,
+        private ui: IUserInteraction,
+        private i18n: II18nProvider
+    ) {}
 
     public async execute(buttonId?: string): Promise<void> {
+        const t = this.i18n.t();
+        
         this.ui.clearOutput();  
-        this.ui.output('🔄 Git Pull 실행 (origin/현재 브랜치)...');
-
+        this.ui.output(t.messages.pullStart);
         
         const activePanel = ShowNavigator.activePanel;
 
         try {
             const currentBranch = await this.git.getCurrentBranchName();
-            this.ui.output(`🔎 현재 브랜치: ${currentBranch}`);
+            this.ui.output(t.messages.currentBranch(currentBranch));
 
             const pullResult = await this.git.pullChanges('origin', currentBranch);
 
             if(pullResult.summary.changes > 0) {
-                this.ui.output(`🎉 Pull 성공! ${pullResult.summary.changes}개의 파일이 업데이트되었습니다.`);
-            }else {
-                this.ui.output('✅ Pull 성공! 이미 최신 상태입니다.');
+                this.ui.output(t.messages.pullSuccessWithChanges(pullResult.summary.changes));
+            } else {
+                this.ui.output(t.messages.pullSuccessUpToDate);
             }
 
             activePanel?.webview.postMessage({
@@ -41,11 +39,10 @@ export class ExecutePullCommand implements ICommand {
             });
 
         } catch (error) {
-            this.ui.showErrorMessage(ERROR_MESSAGES.pullFailed, {});
+            this.ui.showErrorMessage(t.errors.pullFailed, {});
 
             const detailedMessage = error instanceof Error ? error.stack || error.message : String(error);
             this.ui.output(`⚠️ Pull Error: ${detailedMessage}`);
-
             
             activePanel?.webview.postMessage({
                 type: 'commandError',

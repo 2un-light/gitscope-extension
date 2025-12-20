@@ -1,0 +1,17 @@
+{
+    "command.showNavigator": "GitScope: 🧭 Open GitScope Navigator",
+    "command.welcome": "GitScope: 🔭 [WELCOME] GitScope Usage Guide",
+    "command.selectGeminiModel": "GitScope: 🤖 [CONFIG] Select Gemini Model",
+    "command.configApiKey": "GitScope: 🔑 [CONFIG] Configure Gemini API Key (Required)",
+    "command.clone": "GitScope: 🔗 [CLONE] Clone Remote Repository (Required)",
+    "command.pull": "GitScope: 📥 [PULL] Pull Remote Changes",
+    "command.createBranch": "GitScope: 🌳 [BRANCH] Recommend & Create Branch",
+    "command.checkoutBranch": "GitScope: 🔄 [BRANCH] Switch Branch",
+    "command.stageAll": "GitScope: ➕ [STAGE] Stage All Changes",
+    "command.generateCommit": "GitScope: 🪶 [COMMIT] Generate Commit Message",
+    "command.commit": "GitScope: 🚀 [COMMIT] Commit Changes",
+    "command.merge": "GitScope: ➡️ [MERGE] Execute Merge",
+    "command.push": "GitScope: ☁️ [PUSH] Push to Remote",
+    "command.deleteBranch": "GitScope: 🗑️ [BRANCH] Delete Local Branch",
+    "command.createTag": "GitScope: 🏷️ [TAG] Create Tag & Push"
+}

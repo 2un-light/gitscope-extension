@@ -1,4 +1,10 @@
-import { COMMAND_MAP, FLOW_STEPS, NOOP_MESSAGES, MESSAGE_DISPLAY_TIME, UI_STRINGS } from './constants.js';
+import { COMMAND_MAP, MESSAGE_DISPLAY_TIME, getFlowSteps, getNoopMessages, getUIStrings } from './constants.js';
+
+const t = window.I18N_DATA;
+
+const FLOW_STEPS = getFlowSteps(t);
+const UI_STRINGS = getUIStrings(t);
+const NOOP_MESSAGES = getNoopMessages(t);
 
 // --- 전역 변수 초기화 ---
 let currentFlow = 'common';
@@ -19,7 +25,7 @@ window.addEventListener('message', event => {
             break;
         case 'commandError':
             // 명령어 실패 시 에러 메시지 표시
-            showMessage(message.error || '명령어 실행에 실패했습니다.', 'error');
+            showMessage(message.error || 'Failed to execute the command.', 'error');
             break;
                 
     }
@@ -174,7 +180,7 @@ function createBranchesSection(branches) {
     const summary = createEl('summary', ['branch-summary']);
     
     const titleSpan = createEl('span');
-    titleSpan.textContent = '주요 브랜치 설명';
+    titleSpan.textContent = UI_STRINGS.BRANCH_SUMMARY_TITLE;
 
     const suffixSpan = createEl('span', ['text-sm', 'text-gray-400', 'ml-2']);
     suffixSpan.textContent = UI_STRINGS.BRANCH_SUMMARY_SUFFIX;
@@ -307,14 +313,13 @@ function executeCommand(commandId, buttonId, event) {
 
     const command = COMMAND_MAP[commandId];
     if (!command) {
-        showMessage(`오류: 알 수 없는 명령어 ID: ${commandId}`, 'error');
+        showMessage(`Error: Unknown command ID ${commandId}`, 'error');
         return;
     }
 
     vscode.postMessage({
         command: command,
         buttonId: buttonId,
-        text: `GitScope Command: ${command} 실행 요청`
     });
 }
 
@@ -427,4 +432,6 @@ function init() {
 }
 
 // 초기화 함수 실행
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener("DOMContentLoaded", () => {
+  init();
+});
