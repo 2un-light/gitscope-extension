@@ -27,8 +27,8 @@ import { SelectGeminiModelCommand } from './commands/SelectGeminiModelCommand';
 import { IConfigService } from './interfaces/IConfigService';
 import { ConfigService } from './service/configService';
 import { i18n } from './i18n/i18n';
-import { GenerateCommitMessageCommand } from './commands/GenerateCommitMessageCommand';
-import { WelcomeCommand } from './commands/WelcomeCommand';
+import { WelcomeCommand } from './commands/welcomeCommand';
+import { GenerateCommitMessageCommand } from './commands/generateCommitMessageCommand';
 
 
 export function activate(context: vscode.ExtensionContext) {

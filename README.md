@@ -150,4 +150,4 @@ Search for **"GitScope"** in Command Palette to see all available commands.
 For more detailed guides and examples, check out our official manual:
 
 👉 **GitScope Extension Official Manual**  
-https://sparkling-0902.notion.site/GitScope-Extension-2af6a40f9fff804da616e999e8527349
+https://sparkling-0902.notion.site/GitScope-Extension-Official-Manual-2cf6a40f9fff8147ac2be5308379e5ee?source=copy_link
