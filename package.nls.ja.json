@@ -1,0 +1,17 @@
+{
+    "command.showNavigator": "GitScope: 🧭 GitScopeナビゲーターを開く",
+    "command.welcome": "GitScope: 🔭 [ようこそ] GitScope使用ガイド",
+    "command.selectGeminiModel": "GitScope: 🤖 [設定] Geminiモデルを選択",
+    "command.configApiKey": "GitScope: 🔑 [設定] Gemini APIキーを設定（必須）",
+    "command.clone": "GitScope: 🔗 [クローン] リモートリポジトリをクローン（必須）",
+    "command.pull": "GitScope: 📥 [プル] リモートの変更を取得",
+    "command.createBranch": "GitScope: 🌳 [ブランチ] ブランチを推薦・作成",
+    "command.checkoutBranch": "GitScope: 🔄 [ブランチ] ブランチを切り替え",
+    "command.stageAll": "GitScope: ➕ [ステージ] すべての変更をステージ",
+    "command.generateCommit": "GitScope: 🪶 [コミット] コミットメッセージを生成",
+    "command.commit": "GitScope: 🚀 [コミット] 変更をコミット",
+    "command.merge": "GitScope: ➡️ [マージ] マージを実行",
+    "command.push": "GitScope: ☁️ [プッシュ] リモートにプッシュ",
+    "command.deleteBranch": "GitScope: 🗑️ [ブランチ] ローカルブランチを削除",
+    "command.createTag": "GitScope: 🏷️ [タグ] タグを作成してプッシュ"
+}
