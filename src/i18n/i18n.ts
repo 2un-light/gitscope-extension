@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
 import { ko } from './locales/ko';
 import { en } from './locales/en';
+import { ja } from './locales/ja';
 
-export type Language = 'auto' | 'ko' | 'en';
+export type Language = 'auto' | 'ko' | 'en' | 'ja';
 
 export interface ITranslations {
 
@@ -371,11 +372,12 @@ class I18nManager {
 
     private configLanguage: Language = 'auto';
 
-    private resolvedLanguage: 'ko' | 'en' = 'ko';
+    private resolvedLanguage: 'ko' | 'en' | 'ja' = 'ko';
 
-    private translations: Record<'ko' | 'en', ITranslations> = {
+    private translations: Record<'ko' | 'en' | 'ja', ITranslations> = {
         ko,
-        en
+        en,
+        ja,
     };
 
     private constructor() {
@@ -400,10 +402,17 @@ class I18nManager {
     }
 
     private resolveLanguage(): void {
-        if (this.configLanguage === 'auto') {
+        if(this.configLanguage === 'auto') {
             const vscodeLang = vscode.env.language.toLowerCase();
-            this.resolvedLanguage = vscodeLang.startsWith('ko') ? 'ko' : 'en';
-        } else {
+
+            if(vscodeLang.startsWith('ko')) {
+                this.resolvedLanguage = 'ko';
+            }else if(vscodeLang.startsWith('ja')){
+                this.resolvedLanguage = 'ja';
+            }else {
+                this.resolvedLanguage = 'en';
+            }
+        }else{
             this.resolvedLanguage = this.configLanguage;
         }
     }
@@ -429,7 +438,7 @@ class I18nManager {
     /**
      * 실제 사용 중인 언어 (ko / en)
      */
-    public getResolvedLanguage(): 'ko' | 'en' {
+    public getResolvedLanguage(): 'ko' | 'en' | 'ja' {
         return this.resolvedLanguage;
     }
 
